@@ -133,12 +133,16 @@ paths:
     post:
       summary: Authenticate
       x-mojo-to: PatronStore::Controller::Api::V1::Authenticate#post
+      operationId: postAuthentication
+      x-mojo-name: authentication_post
       responses:
         201:
           description: Session created. Sets the PaStor-cookie to track this session.
     get:
       summary: Test the authentication validity
-      x-mojo-to: api-v1::authenticate#get
+      x-mojo-to: authenticate#get
+      operationId: getAuthentication
+      x-mojo-name: authentication_get
       responses:
         204:
           description: Session is still valid

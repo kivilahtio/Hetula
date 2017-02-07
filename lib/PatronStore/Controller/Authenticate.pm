@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore::Api::V1::Authenticate;
+package PatronStore::Controller::Authenticate;
 
 use Mojo::Base 'Mojolicious::Controller';
 
@@ -74,6 +74,12 @@ sub post {
     return $c->render(status => 500, text => $_->error) if $_->isa('PS::Exception');
     return $c->render(status => 500, text => $_);
   };
+  return $c->render(status => 204);
+}
+
+sub get {
+  my ($c) = @_;
+
   return $c->render(status => 204);
 }
 

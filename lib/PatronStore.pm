@@ -48,19 +48,13 @@ sub startup {
   PatronStore::DB::SetConfig($config);
   PatronStore::Schema::SetConfig($config);
 
-  $self->plugin(Swagger2 => {
+  $self->plugin("OpenAPI" => {
     url => $self->home->rel_file("swagger/v1/swagger.yaml"),
-    validate => 1,
+    #Set the root route for Swagger2 routes. Sets the namespace to look for Api::V1 automatically.
+    route => $self->routes->under("/api/v1")->to(namespace => 'Controller::Api::V1', controller => 'Authenticate', action => 'under'),
+    log_level => 'debug',
     coerce => 1,
-    spec_path => '/doc',
-    route => $self->routes->under("/api/v1")->to("Api::V1::Authenticate#under"),
   });
-#  $self->plugin("OpenAPI" => {
-#    url => $self->home->rel_file("swagger/v1/swagger.yaml"),
-#    route => $self->routes->under("/api/v1")->to("PatronStore::Controller::Api::V1::Authenticate#under"),
-#    log_level => 'debug',
-#    coerce => 1,
-#  });
 
 #  $self->helper( 'openapi.not_implemented' => sub {
 #    my $c = shift;
