@@ -1,0 +1,309 @@
+---
+
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: Patron Store
+  description: Secure key-value store for confidential patron information
+schemes:
+ - https
+basePath: /api/v1
+
+x-cors:
+  x-cors-access-control-allow-origin-list: PatronStore::Api::V1::corsOriginWhitelist()
+  x-cors-access-control-allow-credentials: true
+  x-cors-access-control-allow-methods: "*"
+  x-cors-access-control-max-age: 3600
+
+
+### ### DEFINITIONS ### ###
+definitions:
+  organization:
+    type: object
+    description: Organization sharing access to the store
+    required:
+      - name
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+
+
+  ssn:
+    type: object
+    description: The social security number of a person
+    required:
+      - ssn
+    properties:
+      ssnkey:
+        type: integer
+      ssn:
+        type: string
+      organizations:
+        type: array
+        items:
+          description: The organization.name
+          type: string
+
+
+  log:
+    type: object
+    description: A log entry of any DB access
+    required:
+      - id
+      - userid
+      - action
+      - description
+      - organization
+      - timestamp
+    properties:
+      id:
+        type: integer
+      userid:
+        type: integer
+      action:
+        type: string
+      description:
+        type: string
+      organization:
+        description: The organization.name
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+
+
+  user:
+    type: object
+    description: A user of this store, with specific permissions.
+    required:
+      - id
+      - name
+      - username
+      - password
+      - organizations
+      - permissions
+      - ssnkey
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      username:
+        type: string
+        format: byte
+      password:
+        type: string
+        format: password
+      organizations:
+        type: array
+        items:
+          description: The organization.name
+          type: string
+      permissions:
+        type: array
+        items:
+          type: string
+      ssnkey:
+        type: integer
+### END OF ### DEFINITIONS ### ###
+
+
+### ### PATHS ### ###
+paths:
+  /organizations:
+    get:
+      summary: Get all organization
+      responses:
+        200:
+          description: All organization returned
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/organization'
+    post:
+      summary: Add a new organization
+      parameters:
+        - name: organization
+          in: body
+          schema:
+            $ref: '#/definitions/organization'
+      responses:
+        200:
+          description: Organization added succesfully
+          schema:
+            $ref: '#/definitions/organization'
+
+
+  /organizations/{name}:
+    parameters:
+      - name: name
+        in: path
+        type: string
+        description: organization.name
+        required: true
+    get:
+      summary: Get the organization
+      responses:
+        200:
+          description: Organization returned
+          schema:
+            $ref: '#/definitions/organization'
+    delete:
+      summary: Delete organization
+      responses:
+        204:
+          description: Organization deleted succesfully
+
+
+  /ssns/{ssnkey}:
+    parameters:
+      - name: ssnkey
+        in: path
+        type: string
+        description: ssn.ssnkey
+        required: true
+    get:
+      summary: Get the social security number
+      description: Gain access to a persons ssn using a anonymized ssn-key.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ssn'
+    delete:
+      summary: Delete ssn
+      responses:
+        204:
+          description: Deletion ok
+
+
+  /ssns:
+    get:
+      summary: Get all ssns
+      description: Fetch all ssns in the DB, requires a special permission
+      responses:
+        200:
+          description: All ssns returned
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ssn'
+    post:
+      summary: Try adding a new ssn
+      description: Used when testing if a patron already has a ssn stored in the current organization. If no ssn existed, an entry is added to DB. If ssn was present in the DB, the ssnkey is returned.
+      parameters:
+        - name: ssn
+          in: body
+          schema:
+            $ref: '#/definitions/ssn'
+      responses:
+        201:
+          description: SSN created succesfully
+          schema:
+            type: string
+            description: ssn.ssnkey
+        200:
+          description: SSN already existed
+          schema:
+            type: string
+            description: ssn.ssnkey
+
+
+  /ping:
+    get:
+      summary: Server heartbeat operation
+      description: Is the server responding normally
+      security: [ ]
+      responses:
+        204:
+          description: OK
+
+
+  /logs:
+    get:
+      summary: Read access logs
+      parameters:
+        - name: since
+          description: Inclusive datetime to fetch logs from
+          in: query
+          type: string
+          format: date-time
+        - name: until
+          description: Inclusive datetime to fetch logs to
+          in: query
+          type: string
+          format: date-time
+      responses:
+        200:
+          description: All log entries between the given duration
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/log'
+
+
+  /users:
+    get:
+      summary: Get all users
+      responses:
+        200:
+          description: A list of users
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/user'
+    post:
+      summary: Add a user
+      parameters:
+        - name: user
+          in: body
+          schema:
+            $ref: '#/definitions/user'
+      responses:
+        200:
+          description: User added
+          schema:
+            $ref: '#/definitions/user'
+
+
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        type: string
+        description: user.id
+        required: true
+    get:
+      summary: Get a user
+      responses:
+        200:
+          description: A user
+          schema:
+            $ref: '#/definitions/user'
+    put:
+      summary: Modify user
+      parameters:
+        - name: user
+          in: body
+          schema:
+            $ref: '#/definitions/user'
+      responses:
+        200:
+          description: Modified
+          schema:
+            $ref: '#/definitions/user'
+    delete:
+      summary: Delete a user
+      responses:
+        200:
+          description: User deleted
+          schema:
+            $ref: '#/definitions/user'
+### END OF ### PATHS ### ###
+
+

@@ -1,0 +1,5 @@
+This small Mojolicious app
+stores personally confidential user data
+logs who accesses it
+makes sure only those who need can access it.
+

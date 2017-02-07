@@ -1,0 +1,15 @@
+[Unit]
+Description=Secure Patron storage
+
+[Service]
+Type=simple
+User=spatron
+ExecStart=/home/spatron/PatronStore/script/patron_store daemon -m development -l http://*:8080
+
+RestartSec=5s
+Restart=always
+
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
