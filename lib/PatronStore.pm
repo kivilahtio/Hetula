@@ -12,6 +12,8 @@ PatronStore
 
 =cut
 
+use Mojo::IOLoop;
+
 use PatronStore::DB;
 use PatronStore::Schema;
 
@@ -24,7 +26,13 @@ This method will run once at server start
 sub startup {
   my $self = shift;
   my $mode = $self->mode;
-  
+
+
+  # Forward error messages to the application log
+  Mojo::IOLoop->singleton->reactor->on(error => sub {
+    my ($reactor, $err) = @_;
+    $self->log->error("Exception in a non-blocking operation: ".$err);
+  });
 
   # Documentation browser under "/perldoc"
   $self->plugin('PODRenderer');
@@ -51,26 +59,15 @@ sub startup {
   $self->plugin("OpenAPI" => {
     url => $self->home->rel_file("swagger/v1/swagger.yaml"),
     #Set the root route for Swagger2 routes. Sets the namespace to look for Api::V1 automatically.
-    route => $self->routes->under("/api/v1")->to(namespace => 'Controller::Api::V1', controller => 'Authenticate', action => 'under'),
+    route => $self->routes->under("/api/v1")->to(namespace => 'PatronStore::Controller::Api::V1', controller => 'Authenticate', action => 'under'),
     log_level => 'debug',
     coerce => 1,
   });
-
-#  $self->helper( 'openapi.not_implemented' => sub {
-#    my $c = shift;
-#    return { json => { bar => 'faf' }, status => 200 };
-#  });
 
   my $r = $self->routes;
   # Normal route to controller
   $r->get('/')->to('default#index');
   $r->get('/api/v1/doc')->to('Api::V1::Doc#index');
-
-#my $match = Mojolicious::Routes::Match->new(root => $r);
-#$match->find($self => {method => 'POST', path => '/api/v1/auth'});
-#say $match->stack->[1]{controller};
-#say $match->stack->[1]{action};
-
 }
 
 =head2 checkConfig

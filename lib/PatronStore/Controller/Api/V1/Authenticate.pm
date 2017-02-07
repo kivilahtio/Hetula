@@ -74,7 +74,13 @@ sub post {
     return $c->render(status => 500, text => $_->error) if $_->isa('PS::Exception');
     return $c->render(status => 500, text => $_);
   };
-  return $c->render(status => 204);
+  return $c->render(status => 204, text => '');
+}
+
+sub get {
+  my ($c) = @_;
+
+  return $c->render(status => 204, text => '');
 }
 
 =head2 _passwordAuthentication

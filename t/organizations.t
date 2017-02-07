@@ -14,8 +14,8 @@ my $t = t::lib::TestContext::set();
 
 
 
-subtest "Api V1 auth happy path", sub {
-  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => {username => 'admin', password => '1234'})
+subtest "/api/v1/organizations happy path", sub {
+  $t->post_ok('/api/v1/organizations' => {Accept => '*/*'} => json => {username => 'admin', password => '1234'})
     ->status_is(204)
     ->content_like(qr/koha_production/i, 'Unauthorized inventory_hostname mentioned')
     ->content_like(qr/not in the allowed inventory/i, 'Description of the error received');
@@ -23,7 +23,7 @@ subtest "Api V1 auth happy path", sub {
   print $t->tx->res;
   print $t->tx->res->body;
 
-  $t->get_ok('/api/v1/auth')
+  $t->get_ok('/api/v1/organizations')
     ->status_is(204)
     ->content_like(qr/koha_production/i, 'Unauthorized inventory_hostname mentioned');
   print $t->tx->res;

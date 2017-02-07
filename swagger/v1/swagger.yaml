@@ -132,17 +132,13 @@ paths:
   /auth:
     post:
       summary: Authenticate
-      x-mojo-to: PatronStore::Controller::Api::V1::Authenticate#post
-      operationId: postAuthentication
-      x-mojo-name: authentication_post
+      x-mojo-to: Authenticate#post
       responses:
         201:
           description: Session created. Sets the PaStor-cookie to track this session.
     get:
       summary: Test the authentication validity
-      x-mojo-to: authenticate#get
-      operationId: getAuthentication
-      x-mojo-name: authentication_get
+      x-mojo-to: Authenticate#get
       responses:
         204:
           description: Session is still valid
@@ -153,6 +149,7 @@ paths:
   /organizations:
     get:
       summary: Get all organization
+      x-mojo-to: Organizations#get
       responses:
         200:
           description: All organization returned
@@ -162,6 +159,7 @@ paths:
               $ref: '#/definitions/organization'
     post:
       summary: Add a new organization
+      x-mojo-to: Organizations#post
       parameters:
         - name: organization
           in: body
