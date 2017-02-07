@@ -18,6 +18,20 @@ x-cors:
 
 ### ### DEFINITIONS ### ###
 definitions:
+  passwordCredentials:
+    type: object
+    description: Username + password credentials
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+        format: password
+
+
   organization:
     type: object
     description: Organization sharing access to the store
@@ -115,6 +129,23 @@ definitions:
 
 ### ### PATHS ### ###
 paths:
+  /auth:
+    post:
+      summary: Authenticate
+      x-mojo-to: PatronStore::Controller::Api::V1::Authenticate#post
+      responses:
+        201:
+          description: Session created. Sets the PaStor-cookie to track this session.
+    get:
+      summary: Test the authentication validity
+      x-mojo-to: api-v1::authenticate#get
+      responses:
+        204:
+          description: Session is still valid
+        403:
+          description: Session is invalid
+
+
   /organizations:
     get:
       summary: Get all organization

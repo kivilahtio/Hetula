@@ -16,13 +16,16 @@ use Carp;
 use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
 use Params::Validate qw(:all);
+use Data::Dumper;
 
 use PatronStore::DB;
 
+use PS::Exception::User::NotFound;
 
 =head2 getUser
 
 @RETURNS User-object, a hashref of a user-row
+@THROWS from _getUser()
 
 =cut
 
@@ -40,6 +43,9 @@ sub getUser {
 }
 
 =head2 _getUser
+
+@RETURNS PatronStore::Schema::Result::User
+@THROWS PS::Exception::User::NotFound
 
 =cut
 
@@ -65,6 +71,7 @@ sub _getUser {
   $sth->execute( @placeholders );
   die $sth->errstr if $dbh->errstr;
   my $user = $sth->fetchrow_hashref();
+  PS::Exception::User::NotFound->throw(error => 'No user found with params "'.Data::Dumper::Dumper($args).'"') unless $user;
   return $user;
 }
 

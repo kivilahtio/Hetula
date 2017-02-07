@@ -1,12 +1,16 @@
 use 5.22.0;
 
-package AnsbileTorpor::Controller::Default;
+package PatronStore::Controller::Default;
 
 use Mojo::Base 'Mojolicious::Controller';
 
+use Carp;
+use autodie;
+$Carp::Verbose = 'true'; #die with stack trace
+
 =head1 NAME
 
-AnsbileTorpor::Controller::Default
+PatronStore::Controller::Default
 
 =cut
 

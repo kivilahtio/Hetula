@@ -103,7 +103,7 @@ sub _new_schema {
     $encoding_query = "set client_encoding = 'UTF8';";
     $tz_query = qq(SET TIME ZONE = "$tz") if $tz;
   }
-  my $schema = Koha::Schema->connect(
+  my $schema = PatronStore::Schema->connect(
     {
       dsn => "dbi:$db_driver:database=$db_name;host=$db_host;port=$db_port",
       user => $db_user,

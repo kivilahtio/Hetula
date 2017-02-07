@@ -13,6 +13,7 @@ PatronStore
 =cut
 
 use PatronStore::DB;
+use PatronStore::Schema;
 
 =head2 startup
 
@@ -40,22 +41,42 @@ sub startup {
   }
   checkConfig($self, $config);
 
+  $self->sessions->cookie_name('PaStor');
   $self->sessions->default_expiration($config->{session_expiration});
   $self->secrets([$config->{secret}]);
 
   PatronStore::DB::SetConfig($config);
+  PatronStore::Schema::SetConfig($config);
 
-  $self->plugin("OpenAPI" => {
-                  url => $self->home->rel_file("swagger/swagger.yaml"),
-                  route => $self->routes->under("/api/v1")->to("Api::V1::Authenticate#route"),
-                  log_level => 'debug',
-                  coerce => 1,
-                });
+  $self->plugin(Swagger2 => {
+    url => $self->home->rel_file("swagger/v1/swagger.yaml"),
+    validate => 1,
+    coerce => 1,
+    spec_path => '/doc',
+    route => $self->routes->under("/api/v1")->to("Api::V1::Authenticate#under"),
+  });
+#  $self->plugin("OpenAPI" => {
+#    url => $self->home->rel_file("swagger/v1/swagger.yaml"),
+#    route => $self->routes->under("/api/v1")->to("PatronStore::Controller::Api::V1::Authenticate#under"),
+#    log_level => 'debug',
+#    coerce => 1,
+#  });
+
+#  $self->helper( 'openapi.not_implemented' => sub {
+#    my $c = shift;
+#    return { json => { bar => 'faf' }, status => 200 };
+#  });
 
   my $r = $self->routes;
   # Normal route to controller
   $r->get('/')->to('default#index');
   $r->get('/api/v1/doc')->to('Api::V1::Doc#index');
+
+#my $match = Mojolicious::Routes::Match->new(root => $r);
+#$match->find($self => {method => 'POST', path => '/api/v1/auth'});
+#say $match->stack->[1]{controller};
+#say $match->stack->[1]{action};
+
 }
 
 =head2 checkConfig
