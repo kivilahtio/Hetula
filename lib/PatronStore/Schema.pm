@@ -56,7 +56,7 @@ sub SetConfig {
   my ($config) = @_;
 
   my $prologue = "Database configuration parameter ";
-  my @mandatoryConfig = (qw(db_driver db_name));
+  my @mandatoryConfig = (qw(db_driver db_name db_raise_error db_print_error));
   foreach my $mc (@mandatoryConfig) {
     die "$prologue '$mc' is not defined" unless ($config->{$mc});
   }
@@ -80,9 +80,13 @@ sub SetConfig {
 # database connection from the data given in the current context, and
 # returns it.
 
+@PARAM1 Boolean, Raise errors aka. turn errors into exceptions?
+@PARAM2 Boolean, Print errors, print error messages to STDERR.
+
 =cut
 
 sub _new_schema {
+  my ($raiseError, $printError) = @_;
 
   my $db_driver = $dbconfig->{db_driver};
   my $db_name   = $dbconfig->{db_name};
@@ -109,8 +113,8 @@ sub _new_schema {
       user => $db_user,
       password => $db_passwd,
       %encoding_attr,
-      RaiseError => $ENV{DEBUG} ? 1 : 0,
-      PrintError => 1,
+      RaiseError => $raiseError,
+      PrintError => $printError,
       unsafe => 1,
       quote_names => 1,
       on_connect_do => [
@@ -121,8 +125,8 @@ sub _new_schema {
   );
 
   my $dbh = $schema->storage->dbh;
-  $dbh->{RaiseError} = 1;
-  $dbh->{PrintError} = 1;
+  $dbh->{RaiseError} = $raiseError;
+  $dbh->{PrintError} = $printError;
 
   return $schema;
 }
@@ -161,13 +165,14 @@ The handle is not saved anywhere: this method is strictly a
 convenience function; the point is that it knows which database to
 connect to so that the caller doesn't have to know.
 
+@PARAM passes all params through to _new_schema()
+
 =cut
 
 #'
 sub new_schema {
-  my $self = shift;
-
-  return &_new_schema();
+  shift @_ if $_[0] eq __PACKAGE__;
+  return &_new_schema(@_);
 }
 
 =head2 set_schema

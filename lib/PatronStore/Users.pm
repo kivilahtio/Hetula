@@ -8,72 +8,61 @@ PatronStore::Users
 
 =head2 SYNOPSIS
 
-Manage Users
+Manage this class of objects
 
 =cut
 
 use Carp;
 use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
-use Params::Validate qw(:all);
 use Data::Dumper;
+use Digest::SHA;
 
-use PatronStore::DB;
+use PatronStore::Schema;
 
 use PS::Exception::User::NotFound;
 
 =head2 getUser
-
-@RETURNS User-object, a hashref of a user-row
-@THROWS from _getUser()
-
-=cut
-
-sub getUser {
-  my $args = validate(@_, {
-    username => {type => SCALAR, default => undef},
-    userid => {type => SCALAR, default => undef},
-    cookie_digest => {type => SCALAR, default => undef},
-  });
-
-  my $user = _getUser($args);
-
-  bless($user, 'PatronStore::User');
-  return $user;
-}
-
-=head2 _getUser
 
 @RETURNS PatronStore::Schema::Result::User
 @THROWS PS::Exception::User::NotFound
 
 =cut
 
-sub _getUser {
+sub getUser {
   my ($args) = @_;
-  my $dbh = PatronStore::DB::dbh();
-
-  my (@queryParams, @placeholders);
-  if ($args->{username}) {
-    push @queryParams, ' username = ? ';
-    push @placeholders, $args->{username};
-  }
-  if ($args->{userid}) {
-    push @queryParams, ' userid = ? ';
-    push @placeholders, $args->{userid};
-  }
-  if ($args->{cookie_digest}) {
-    push @queryParams, ' cookie_digest = ? ';
-    push @placeholders, $args->{cookie_digest};
-  }
-  my $sql = 'SELECT * FROM user WHERE '.join('AND',@queryParams);
-  my $sth = $dbh->prepare( $sql );
-  $sth->execute( @placeholders );
-  die $sth->errstr if $dbh->errstr;
-  my $user = $sth->fetchrow_hashref();
+  my $rs = PatronStore::Schema::schema()->resultset('User');
+  my $user = $rs->find($args);
   PS::Exception::User::NotFound->throw(error => 'No user found with params "'.Data::Dumper::Dumper($args).'"') unless $user;
   return $user;
 }
 
+
+=head2 createUser
+
+Creates and returns a User
+
+=cut
+
+sub createUser {
+  my ($user, $permissions, $organizations) = @_;
+
+  $user->{password} = Digest::SHA::sha256($user->{password});
+  my $new_user = _createUser($user);
+
+  return $new_user;
+}
+
+=head2 _createUser
+
+Creates a User-entry to the DB
+
+=cut
+
+sub _createUser {
+  my ($user) = @_;
+  my $rs = PatronStore::Schema::schema()->resultset('User');
+  return $rs->create($user);
+}
 
 1;

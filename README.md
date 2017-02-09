@@ -1,7 +1,16 @@
 # Patron-Store
 Secure storage for private patron data.
 
-apt-get install cpanm
+#h2. Installation
+
+apt-get install
+  - git
+  - tig
+  - cpanminus
+  - build-essential
+  - libssl-dev
+  - libipc-system-simple-perlcpanm
+
 cpanm Dist::Zilla
 
 dzil authordeps --missing | cpanm

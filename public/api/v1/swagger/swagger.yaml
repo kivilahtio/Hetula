@@ -42,7 +42,10 @@ definitions:
         type: integer
       name:
         type: string
-      timestamp:
+      createtime:
+        type: string
+        format: date-time
+      updatetime:
         type: string
         format: date-time
 
@@ -133,17 +136,32 @@ paths:
     post:
       summary: Authenticate
       x-mojo-to: Authenticate#post
+      parameters:
+        - name: passwordCredentials
+          in: body
+          schema:
+            $ref: '#/definitions/passwordCredentials'
       responses:
         201:
           description: Session created. Sets the PaStor-cookie to track this session.
+        401:
+          description: Credentials were not accepted
     get:
       summary: Test the authentication validity
       x-mojo-to: Authenticate#get
       responses:
         204:
           description: Session is still valid
-        403:
-          description: Session is invalid
+        404:
+          description: Session is invalid or not found
+    delete:
+      summary: Close the current session
+      x-mojo-to: Authenticate#delete
+      responses:
+        204:
+          description: Session closed
+        404:
+          description: Session is invalid or not found
 
 
   /organizations:
@@ -166,7 +184,7 @@ paths:
           schema:
             $ref: '#/definitions/organization'
       responses:
-        200:
+        201:
           description: Organization added succesfully
           schema:
             $ref: '#/definitions/organization'
