@@ -7,6 +7,8 @@ use Carp;
 use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
 
+##################################
+## ## ##   DBIx::Schema   ## ## ##
 __PACKAGE__->load_components(qw( TimeStamp Core ));
 __PACKAGE__->table('organization');
 __PACKAGE__->add_columns(
@@ -16,8 +18,11 @@ __PACKAGE__->add_columns(
   updatetime => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
 __PACKAGE__->set_primary_key('id');
+## ## ##   DONE WITH DBIx::Schema   ## ## ##
+############################################
 
-
+#####################################
+## ## ##   OBJECT METHODS    ## ## ##
 
 =head2 swaggerize
 

@@ -1,4 +1,7 @@
 use 5.22.0;
+use utf8;
+binmode STDOUT, ":utf8";
+binmode STDERR, ":utf8";
 
 use Mojo::Base -strict;
 
@@ -9,6 +12,7 @@ use Test::MockModule;
 use t::lib::TestContext;
 use t::lib::Auth;
 #$ENV{MOJO_OPENAPI_DEBUG} = 1;
+$ENV{MOJO_INACTIVITY_TIMEOUT} = 3600; #Useful for debugging
 $ENV{MOJO_LOG_LEVEL} = 'debug';
 my $t = t::lib::TestContext::set();
 ###  START TESTING  ###
@@ -22,9 +26,9 @@ subtest "Api V1 CRUD organizations happy path", sub {
 
 
   ok(1, 'When POSTing a new organization "Vaara"');
-  $t->post_ok('/api/v1/organizations' => {Accept => '*/*'} => json => {name => 'Vaara'}, 'descr--------')
+  $t->post_ok('/api/v1/organizations' => {Accept => '*/*'} => json => {name => 'Vaara'})
     ->status_is(201, 'Then the organization is created');
-  print $t->tx->res->text;
+  #print $t->tx->res->text;
   $body = $t->tx->res->json;
   is($body->{name}, 'Vaara', 'And the name is "Vaara"');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
@@ -37,7 +41,7 @@ subtest "Api V1 CRUD organizations happy path", sub {
   ok(1, 'When GETting the Vaara-organization');
   $t->get_ok('/api/v1/organizations/Vaara')
     ->status_is(200, 'Then the organization is returned');
-  print $t->tx->res->text;
+  #print $t->tx->res->text;
   $body = $t->tx->res->json;
   is($body->{name}, 'Vaara', 'And the name is "Vaara"');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
@@ -58,7 +62,7 @@ subtest "Api V1 CRUD organizations happy path", sub {
   ok(1, 'When GETting the DELETEd Vaara-organization');
   $t->get_ok('/api/v1/organizations/Vaara')
     ->status_is(404, 'Then the organization is not found')
-    ->content_like(qr!PS::Exception::Auth::Authentication!, 'And the content contains the correct PS::Exception::Organization::NotFound exception');
+    ->content_like(qr!PS::Exception::Organization::NotFound!, 'And the content contains the correct PS::Exception::Organization::NotFound exception');
   #print $t->tx->res->text;
   $body = $t->tx->res->json;
   ok(not($body), 'And there is no json body');

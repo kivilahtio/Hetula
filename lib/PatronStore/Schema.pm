@@ -107,6 +107,10 @@ sub _new_schema {
     $encoding_query = "set client_encoding = 'UTF8';";
     $tz_query = qq(SET TIME ZONE = "$tz") if $tz;
   }
+  elsif ( $db_driver eq 'SQLite') {
+    %encoding_attr = ( sqlite_unicode => 1 );
+  }
+
   my $schema = PatronStore::Schema->connect(
     {
       dsn => "dbi:$db_driver:database=$db_name;host=$db_host;port=$db_port",

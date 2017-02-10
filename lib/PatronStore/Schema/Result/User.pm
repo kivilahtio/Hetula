@@ -9,6 +9,7 @@ $Carp::Verbose = 'true'; #die with stack trace
 
 ##################################
 ## ## ##   DBIx::Schema   ## ## ##
+__PACKAGE__->load_components(qw( TimeStamp Core ));
 __PACKAGE__->table('user');
 __PACKAGE__->add_columns(
   id => { data_type => 'integer', is_auto_increment => 1 },
@@ -16,7 +17,8 @@ __PACKAGE__->add_columns(
   password => { data_type => 'varchar', size => 30},
   realname => { data_type => 'varchar', size => 50},
   failed_login_count => { data_type => 'integer', default_value => 0 },
-  last_client_ip => { data_type => 'varchar', size => 25},
+  createtime => { data_type => 'datetime', set_on_create => 1 },
+  updatetime => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many(user_permissions => 'PatronStore::Schema::Result::UserPermission', 'userid');
@@ -26,6 +28,26 @@ __PACKAGE__->has_many(user_permissions => 'PatronStore::Schema::Result::UserPerm
 
 #####################################
 ## ## ##   OBJECT METHODS    ## ## ##
+
+=head2 swaggerize
+
+Cast this into something the OpenAPI-plugin can validate as a proper Swagger2-response object
+
+=cut
+
+sub swaggerize {
+  my ($self, $op_spec) = @_;
+
+  $self->{_column_data}->{createtime} =~ s/ /T/;
+  $self->{_column_data}->{updatetime} =~ s/ /T/;
+#  require Encode;
+#  while(my ($k, $v) = each(%{$self->{_column_data}})) {
+#    $v = Encode::encode_utf8($v);
+#    $self->{_column_data}->{$k} = $v;
+#  }
+
+  return $self->{_column_data};
+}
 
 =head2 unblockLogin
 

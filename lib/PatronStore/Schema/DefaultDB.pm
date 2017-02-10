@@ -50,7 +50,7 @@ sub _checkIfDBExists {
 sub _populateCoreData {
   my ($schema) = @_;
 
-  PatronStore::Users::createUser({id => 1, username => 'admin', realname => 'Super administrator account', password => '1234', last_client_ip => '0.0.0.0'});
+  PatronStore::Users::createUser({id => 1, username => 'admin', realname => 'Super administrator account', password => '1234'});
 }
 
 1;

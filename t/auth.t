@@ -1,4 +1,7 @@
 use 5.22.0;
+use utf8;
+binmode STDOUT, ":utf8";
+binmode STDERR, ":utf8";
 
 use Mojo::Base -strict;
 
@@ -16,7 +19,7 @@ use PatronStore::Users;
 
 
 subtest "Api V1 auth happy path", sub {
-  my ($cookies, $sessionCookie);
+  my ($cookies, $sessionCookie, $csrfHeader);
 
   #This is duplicated in t::lib::Auth::doPasswordLogin(), login using doPasswordLogin() in other test cases instead of manually duplicating this.
   ok(1, 'When authenticating with proper credentials');
@@ -26,6 +29,8 @@ subtest "Api V1 auth happy path", sub {
   $sessionCookie = $cookies->[0];
   is($cookies->[0]->{name}, 'PaStor', 'Then the session cookie is set');
   $t->ua->cookie_jar->add($sessionCookie);
+  $csrfHeader = $t->tx->res->headers->header('X-CSRF-Token');
+  is(length($csrfHeader), 40, 'Cross-Site request forgery prevention header set and is a nice hash');
 
 
   ok(1, 'When checking if the authentication is still valid');

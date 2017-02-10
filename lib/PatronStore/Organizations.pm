@@ -57,11 +57,7 @@ Deletes an org
 
 sub deleteOrganizaton {
   my ($args) = @_;
-
-  my $rs = PatronStore::Schema::schema()->resultset('Organization');
-  my $org = $rs->find($args);
-  PS::Exception::Organization::NotFound->throw(error => 'No organization found with params "'.Data::Dumper::Dumper($args).'"') unless $org;
-  $org->delete;
+  getOrganization($args)->delete;
 }
 
 1;

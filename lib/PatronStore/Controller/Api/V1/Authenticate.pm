@@ -37,9 +37,12 @@ Puts authenticated user to $c->stash()->{loggedinuser}
 sub under {
   my $c = shift;
 
-  #If we are authenticating, don't demand authentication
+  #If we are authenticating, don't demand an existing authentication
   my $path = $c->req->url->path;
-  return 1 if $path =~ m!^/api/v1/auth!i;
+  if ($path =~ m!^/api/v1/auth!i) {
+    _updateCsrfToken($c);
+    return 1;
+  }
 
   my $authStatus;
   try {
@@ -49,12 +52,12 @@ sub under {
 
     my $user = PatronStore::Users::getUser({id => $userid});
 
-    # Check CSRF token
+    # Check CSRF token X-CSRF-Token
     my $validation = $c->validation;
-    PS::Exception::Auth::CSRF->throw(error => 'Cross-Site Request Forgery attempt suspected. Authentication failed')
+    PS::Exception::Auth::CSRF->throw(error => 'Cross-Site Request Forgery attempt suspected. Authentication failed.')
             if $validation->csrf_protect->has_error('csrf_token');
 
-    $c->_authorizeApiResource($c->req->url->path, $user);
+    $c->_authorizeApiResource($user);
 
     $authStatus = 1; #Return true to tell Mojo to continue processing this request.
 
@@ -62,8 +65,8 @@ sub under {
     $authStatus = 0;
     my $default = PS::Exception::handleDefaults($_);
     return $c->render(status => 500, text => $default) if $default;
-    return $c->render(status => 403, text => $_->error) if $_->isa('PS::Exception::Auth');
-    return $c->render(status => 403, text => 'Authentication failed: '.$_->error) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 403, text => $_->toText) if $_->isa('PS::Exception::Auth');
+    return $c->render(status => 403, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
   };
 
   return $authStatus;
@@ -145,8 +148,7 @@ sub _passwordAuthentication {
     PS::Exception::Auth::AccountBlocked->throw(error => "Account has been frozen due to too many failed login attemps");
   }
   elsif ($user && Digest::SHA::sha256($pass) eq $user->password ) {
-    #Create the session cookie
-    $c->session(userid => $user->id);
+    _createSession($c, $user);
     return $user;
   }
   $user->incrementFailedLoginCount;
@@ -158,7 +160,7 @@ sub _passwordAuthentication {
 =cut
 
 sub _authorizeApiResource {
-  my ($c, $path, $user) = @_;
+  my ($c, $user) = @_;
 
   my $permissionNeeded = PatronStore::getPermissionFromRoute($c->match->endpoint);
   my $perm = $user->hasPermission($permissionNeeded);
@@ -166,6 +168,33 @@ sub _authorizeApiResource {
     return 1;
   }
   PS::Exception::Auth::Authorization->throw(error => "User '".$user->username."' is missing permission '$permissionNeeded'");
+}
+
+=head2 _createSession
+
+Establishes a Mojolicious::Session
+
+=cut
+
+sub _createSession {
+  my ($c, $user) = @_;
+  #Create the session cookie
+  $c->session(userid => $user->id);
+  $c->session('HttpOnly');
+  return $c;
+}
+
+=head2 _updateCsrfToken
+
+Adds the X-CSRF-Token -header if it is missing.
+Updates existing one.
+
+=cut
+
+sub _updateCsrfToken {
+  my ($c) = @_;
+  $c->res->headers->header('X-CSRF-Token' => $c->csrf_token);
+  return $c;
 }
 
 1;

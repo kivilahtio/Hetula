@@ -5,8 +5,6 @@ info:
   version: '1.0.0'
   title: Patron Store
   description: Secure key-value store for confidential patron information
-schemes:
- - https
 basePath: /api/v1
 
 x-cors:
@@ -98,17 +96,12 @@ definitions:
     type: object
     description: A user of this store, with specific permissions.
     required:
-      - id
-      - name
+      - realname
       - username
-      - password
-      - organizations
-      - permissions
-      - ssnkey
     properties:
       id:
         type: integer
-      name:
+      realname:
         type: string
       username:
         type: string
@@ -125,8 +118,6 @@ definitions:
         type: array
         items:
           type: string
-      ssnkey:
-        type: integer
 ### END OF ### DEFINITIONS ### ###
 
 
@@ -167,7 +158,7 @@ paths:
   /organizations:
     get:
       summary: Get all organization
-      x-mojo-to: Organizations#get
+      x-mojo-to: Organizations#list
       responses:
         200:
           description: All organization returned
@@ -199,6 +190,7 @@ paths:
         required: true
     get:
       summary: Get the organization
+      x-mojo-to: Organizations#get
       responses:
         200:
           description: Organization returned
@@ -206,6 +198,7 @@ paths:
             $ref: '#/definitions/organization'
     delete:
       summary: Delete organization
+      x-mojo-to: Organizations#delete
       responses:
         204:
           description: Organization deleted succesfully
@@ -220,6 +213,7 @@ paths:
         required: true
     get:
       summary: Get the social security number
+      x-mojo-to: Ssns#get
       description: Gain access to a persons ssn using a anonymized ssn-key.
       responses:
         200:
@@ -228,6 +222,7 @@ paths:
             $ref: '#/definitions/ssn'
     delete:
       summary: Delete ssn
+      x-mojo-to: Ssns#delete
       responses:
         204:
           description: Deletion ok
@@ -236,6 +231,7 @@ paths:
   /ssns:
     get:
       summary: Get all ssns
+      x-mojo-to: Ssns#list
       description: Fetch all ssns in the DB, requires a special permission
       responses:
         200:
@@ -246,6 +242,7 @@ paths:
               $ref: '#/definitions/ssn'
     post:
       summary: Try adding a new ssn
+      x-mojo-to: Ssns#post
       description: Used when testing if a patron already has a ssn stored in the current organization. If no ssn existed, an entry is added to DB. If ssn was present in the DB, the ssnkey is returned.
       parameters:
         - name: ssn
@@ -268,6 +265,7 @@ paths:
   /ping:
     get:
       summary: Server heartbeat operation
+      x-mojo-to: Ping#get
       description: Is the server responding normally
       security: [ ]
       responses:
@@ -278,6 +276,7 @@ paths:
   /logs:
     get:
       summary: Read access logs
+      x-mojo-to: Logs#list
       parameters:
         - name: since
           description: Inclusive datetime to fetch logs from
@@ -301,6 +300,7 @@ paths:
   /users:
     get:
       summary: Get all users
+      x-mojo-to: Users#list
       responses:
         200:
           description: A list of users
@@ -310,13 +310,14 @@ paths:
               $ref: '#/definitions/user'
     post:
       summary: Add a user
+      x-mojo-to: Users#post
       parameters:
         - name: user
           in: body
           schema:
             $ref: '#/definitions/user'
       responses:
-        200:
+        201:
           description: User added
           schema:
             $ref: '#/definitions/user'
@@ -331,6 +332,7 @@ paths:
         required: true
     get:
       summary: Get a user
+      x-mojo-to: Users#get
       responses:
         200:
           description: A user
@@ -338,6 +340,7 @@ paths:
             $ref: '#/definitions/user'
     put:
       summary: Modify user
+      x-mojo-to: Users#put
       parameters:
         - name: user
           in: body
@@ -350,11 +353,10 @@ paths:
             $ref: '#/definitions/user'
     delete:
       summary: Delete a user
+      x-mojo-to: Users#delete
       responses:
-        200:
+        204:
           description: User deleted
-          schema:
-            $ref: '#/definitions/user'
 ### END OF ### PATHS ### ###
 
 

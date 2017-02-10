@@ -15,6 +15,13 @@ sub doPasswordLogin {
   my $cookies = $tx->res->cookies;
   my $sessionCookie = $cookies->[0];
   $t->ua->cookie_jar->add($sessionCookie);
+
+  my $csrfHeader = $tx->res->headers->header('X-CSRF-Token');
+
+  $t->ua->on(start => sub {
+    my ($ua, $tx) = @_;
+    $tx->req->headers->header('X-CSRF-Token' => $csrfHeader);
+  });
   return $t;
 }
 

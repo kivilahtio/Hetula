@@ -22,6 +22,21 @@ use PatronStore::Schema;
 
 use PS::Exception::User::NotFound;
 
+=head2 listUsers
+
+@RETURNS ARRAYRef of PatronStore::Schema::Result::User-objects
+@THROWS PS::Exception::User::NotFound
+
+=cut
+
+sub listUsers {
+  my ($args) = @_;
+  my $rs = PatronStore::Schema::schema()->resultset('User');
+  my @users = $rs->search()->all();
+  PS::Exception::User::NotFound->throw(error => 'No user found with params "'.Data::Dumper::Dumper($args).'"') unless @users;
+  return \@users;
+}
+
 =head2 getUser
 
 @RETURNS PatronStore::Schema::Result::User
@@ -63,6 +78,17 @@ sub _createUser {
   my ($user) = @_;
   my $rs = PatronStore::Schema::schema()->resultset('User');
   return $rs->create($user);
+}
+
+=head2 deleteUser
+
+Deletes an user
+
+=cut
+
+sub deleteUser {
+  my ($args) = @_;
+  getUser($args)->delete();
 }
 
 1;
