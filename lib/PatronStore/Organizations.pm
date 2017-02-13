@@ -49,13 +49,13 @@ sub createOrganization {
   return $rs->create($organization);
 }
 
-=head2 deleteOrganizaton
+=head2 deleteOrganization
 
 Deletes an org
 
 =cut
 
-sub deleteOrganizaton {
+sub deleteOrganization {
   my ($args) = @_;
   getOrganization($args)->delete;
 }

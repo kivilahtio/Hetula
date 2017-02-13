@@ -6,6 +6,7 @@ use base qw/DBIx::Class::Core/;
 use Carp;
 use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
+use Scalar::Util qw(blessed);
 
 ##################################
 ## ## ##   DBIx::Schema   ## ## ##
@@ -22,7 +23,9 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many(user_permissions => 'PatronStore::Schema::Result::UserPermission', 'userid');
-#__PACKAGE__->has_many(organizations => 'PatronStore::Schema::Result::UserOrganization', 'id');
+__PACKAGE__->many_to_many(permissions => 'user_permissions', 'permission');
+__PACKAGE__->has_many(user_organizations => 'PatronStore::Schema::Result::UserOrganization', 'userid');
+__PACKAGE__->many_to_many(organizations => 'user_organizations', 'organization');
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
 ############################################
 
@@ -38,15 +41,16 @@ Cast this into something the OpenAPI-plugin can validate as a proper Swagger2-re
 sub swaggerize {
   my ($self, $op_spec) = @_;
 
-  $self->{_column_data}->{createtime} =~ s/ /T/;
-  $self->{_column_data}->{updatetime} =~ s/ /T/;
-#  require Encode;
-#  while(my ($k, $v) = each(%{$self->{_column_data}})) {
-#    $v = Encode::encode_utf8($v);
-#    $self->{_column_data}->{$k} = $v;
-#  }
+  my $swag = $self->{_column_data};
+  $swag->{createtime} =~ s/ /T/;
+  $swag->{updatetime} =~ s/ /T/;
 
-  return $self->{_column_data};
+  my @organizations = map {$_->toString} sort {$a->name cmp $b->name} $self->organizations;
+  $swag->{organizations} = \@organizations;
+  my @permissions = map {$_->toString} sort {$a->name cmp $b->name} $self->permissions;
+  $swag->{permissions} = \@permissions;
+
+  return $swag;
 }
 
 =head2 unblockLogin
@@ -131,6 +135,46 @@ sub revokePermission {
   my $rs = PatronStore::Schema->schema->resultset('UserPermission');
   my $up = $rs->find({userid => $self->id, permissionid => $permission->id});
   $up->delete;
+  return $self;
+}
+
+=head2 revokeAllPermissions
+
+=cut
+
+sub revokeAllPermissions {
+  my ($self) = @_;
+
+  my $rs = PatronStore::Schema->schema->resultset('UserPermission');
+  $rs->search({userid => $self->id})->delete;
+  return $self;
+}
+
+=head2 setPermissions
+
+@PARAM1 ARRAYRef of permission.name
+
+=cut
+
+sub setPermissions {
+  my ($self, $permissions) = @_;
+
+  my @new = PatronStore::Schema->schema->resultset('Permission')->search({name => {'-in' => $permissions}});
+  $self->set_permissions(\@new);
+  return $self;
+}
+
+=head2 setOrganizations
+
+@PARAM1 ARRAYRef of organization.name
+
+=cut
+
+sub setOrganizations {
+  my ($self, $organizations) = @_;
+
+  my @new = PatronStore::Schema->schema->resultset('Organization')->search({name => {'-in' => $organizations}});
+  $self->set_organizations(\@new);
   return $self;
 }
 

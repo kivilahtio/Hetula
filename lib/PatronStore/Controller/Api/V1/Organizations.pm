@@ -58,7 +58,7 @@ sub delete {
   my $organizationName = $c->validation->param('name');
 
   try {
-    PatronStore::Organizations::deleteOrganizaton({name => $organizationName});
+    PatronStore::Organizations::deleteOrganization({name => $organizationName});
     return $c->render(status => 204, openapi => undef);
 
   } catch {

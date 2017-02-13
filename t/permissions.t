@@ -21,49 +21,50 @@ my $t = t::lib::TestContext::set();
 use DateTime::Format::ISO8601;
 
 
-subtest "Api V1 CRUD organizations happy path", sub {
-  my ($body) = @_;
+subtest "Api V1 CRUD permissions happy path", sub {
+  my ($body, $id) = @_;
   t::lib::Auth::doPasswordLogin($t);
 
 
-  ok(1, 'When POSTing a new organization "Vaara"');
-  $t->post_ok('/api/v1/organizations' => {Accept => '*/*'} => json => {name => 'Vaara'})
-    ->status_is(201, 'Then the organization is created');
+  ok(1, 'When POSTing a new permission "test-put"');
+  $t->post_ok('/api/v1/permissions' => {Accept => '*/*'} => json => {name => 'test-put'})
+    ->status_is(201, 'Then the permission is created');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
-  is($body->{name}, 'Vaara', 'And the name is "Vaara"');
+  is($body->{name}, 'test-put', 'And the name is "test-put"');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
                              'And the updatetime is in ISO8601');
-  is($body->{id}, 1,         'And the id is 1');
+  ok($body->{id},            'And the id exists');
+  $id = $body->{id};
 
 
-  ok(1, 'When GETting the Vaara-organization');
-  $t->get_ok('/api/v1/organizations/Vaara')
-    ->status_is(200, 'Then the organization is returned');
+  ok(1, 'When GETting the test-put -permission');
+  $t->get_ok("/api/v1/permissions/$id")
+    ->status_is(200, 'Then the permission is returned');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
-  is($body->{name}, 'Vaara', 'And the name is "Vaara"');
+  is($body->{name}, 'test-put', 'And the name is "test-put"');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
                              'And the updatetime is in ISO8601');
-  is($body->{id}, 1,         'And the id is 1');
+  is($body->{id}, $id,       'And the id is the same');
 
 
-  ok(1, 'When DELETEing the Vaara-organization');
-  $t->delete_ok('/api/v1/organizations/Vaara')
-    ->status_is(204, 'Then the organization is deleted');
+  ok(1, 'When DELETEing the test-put -permission');
+  $t->delete_ok("/api/v1/permissions/$id")
+    ->status_is(204, 'Then the permission is deleted');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->text;
   ok(not($body), 'And there is no content');
 
 
-  ok(1, 'When GETting the DELETEd Vaara-organization');
-  $t->get_ok('/api/v1/organizations/Vaara')
-    ->status_is(404, 'Then the organization is not found')
-    ->content_like(qr!PS::Exception::Organization::NotFound!, 'And the content contains the correct PS::Exception::Organization::NotFound exception');
+  ok(1, 'When GETting the DELETEd test-put -permission');
+  $t->get_ok("/api/v1/permissions/$id")
+    ->status_is(404, 'Then the permission is not found')
+    ->content_like(qr!PS::Exception::Permission::NotFound!, 'And the content contains the correct PS::Exception::Permission::NotFound exception');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   ok(not($body), 'And there is no json body');

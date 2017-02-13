@@ -15,6 +15,6 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to(user => 'PatronStore::Schema::Result::User', 'userid');
-__PACKAGE__->belongs_to(permission => 'PatronStore::Schema::Result::Organization', 'organizationid');
+__PACKAGE__->belongs_to(organization => 'PatronStore::Schema::Result::Organization', 'organizationid');
 
 1;

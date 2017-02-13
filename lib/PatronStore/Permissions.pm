@@ -19,6 +19,23 @@ use Data::Dumper;
 
 use PatronStore::Schema;
 
+use PS::Exception::Permission::NotFound;
+
+=head2 getPermission
+
+@RETURNS PatronStore::Schema::Result::Permission
+@THROWS PS::Exception::Permission::NotFound
+
+=cut
+
+sub getPermission {
+  my ($args) = @_;
+  my $rs = PatronStore::Schema::schema()->resultset('Permission');
+  my $o = $rs->find($args);
+  PS::Exception::Permission::NotFound->throw(error => 'No permission found with params "'.Data::Dumper::Dumper($args).'"') unless $o;
+  return $o;
+}
+
 =head2 listPermissions
 
 Returns all Permissions
@@ -45,15 +62,13 @@ sub createPermission {
 =head2 deletePermission
 
 Deletes a perm
+@THROWS PS::Exception::Permission::NotFound
 
 =cut
 
 sub deletePermission {
   my ($args) = @_;
-
-  my $rs = PatronStore::Schema::schema()->resultset('Permission');
-  my $p = $rs->find($args);
-  PS::Exception::Permission::NotFound->throw(error => 'No permission found with params "'.Data::Dumper::Dumper($args).'"') unless $p;
+  my $p = getPermission($args);
   $p->delete;
 }
 

@@ -52,6 +52,20 @@ sub getUser {
   return $user;
 }
 
+=head2 getFullUser
+
+@RETURNS PatronStore::Schema::Result::User, with Organizations and Permissions prefetched
+@THROWS PS::Exception::User::NotFound
+
+=cut
+
+sub getFullUser {
+  my ($args) = @_;
+  my $rs = PatronStore::Schema::schema()->resultset('User');
+  my $user = $rs->find({id => $args->{id}}, {prefetch => {user_permission => 'permission',
+                                                          user_organization => 'organization'}});
+  return $user;
+}
 
 =head2 createUser
 
@@ -60,12 +74,22 @@ Creates and returns a User
 =cut
 
 sub createUser {
-  my ($user, $permissions, $organizations) = @_;
+  my ($user) = @_;
+  my ($permissions, $organizations) = ($user->{permissions}, $user->{organizations});
+  delete $user->{permissions};
+  delete $user->{organizations};
 
-  $user->{password} = Digest::SHA::sha256($user->{password});
-  my $new_user = _createUser($user);
+  _hashPassword($user);
+  my $newUser = _createUser($user);
 
-  return $new_user;
+  if ($permissions) {
+    $newUser->setPermissions($permissions);
+  }
+  if ($organizations) {
+    $newUser->setOrganizations($organizations);
+  }
+
+  return $newUser;
 }
 
 =head2 _createUser
@@ -80,6 +104,43 @@ sub _createUser {
   return $rs->create($user);
 }
 
+=head2 modUser
+
+Updates and returns a User
+
+=cut
+
+sub modUser {
+  my ($user) = @_;
+  my ($permissions, $organizations) = ($user->{permissions}, $user->{organizations});
+  delete $user->{permissions};
+  delete $user->{organizations};
+
+  _hashPassword($user);
+  my $oldUser = _modUser($user);
+
+  if ($permissions) {
+    $oldUser->setPermissions($permissions);
+  }
+  if ($organizations) {
+    $oldUser->setOrganizations($organizations);
+  }
+
+  return $oldUser;
+}
+
+=head2 _modUser
+
+Updates a User-entry to the DB
+
+=cut
+
+sub _modUser {
+  my ($user) = @_;
+  my $oldUser = getUser({id => $user->{id}});
+  return $oldUser->update($user);
+}
+
 =head2 deleteUser
 
 Deletes an user
@@ -88,7 +149,18 @@ Deletes an user
 
 sub deleteUser {
   my ($args) = @_;
-  getUser($args)->delete();
+  getUser({id => $args->{id}})->delete();
+}
+
+=head2 _hashPassword
+
+@PARAM1 HASHRef of user attributes.
+
+=cut
+
+sub _hashPassword {
+  my ($user) = @_;
+  $user->{password} = Digest::SHA::sha256($user->{password});
 }
 
 1;

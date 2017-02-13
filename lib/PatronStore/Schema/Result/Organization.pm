@@ -6,6 +6,7 @@ use base qw/DBIx::Class::Core/;
 use Carp;
 use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
+use Scalar::Util qw(blessed);
 
 ##################################
 ## ## ##   DBIx::Schema   ## ## ##
@@ -18,6 +19,8 @@ __PACKAGE__->add_columns(
   updatetime => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->has_many(user_organizations => 'PatronStore::Schema::Result::UserOrganization', 'organizationid');
+__PACKAGE__->many_to_many(users => 'user_organizations', 'user');
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
 ############################################
 
@@ -36,6 +39,14 @@ sub swaggerize {
   $self->{_column_data}->{createtime} =~ s/ /T/;
   $self->{_column_data}->{updatetime} =~ s/ /T/;
   return $self->{_column_data};
+}
+
+=head2 toString
+
+=cut
+
+sub toString {
+  shift->name;
 }
 
 
