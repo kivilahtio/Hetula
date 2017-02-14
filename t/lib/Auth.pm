@@ -6,12 +6,22 @@ package t::lib::Auth;
 
 Logs in and sets the session cookie to Test::Mojo->ua
 
+@PARAM1 Test::Mojo
+@PARAM2 HASHRef, {
+  organization => 'Vaara', #Sets the organization when logging in.
+}
+
 =cut
 
 sub doPasswordLogin {
-  my ($t) = @_;
+  my ($t, $args) = @_;
 
-  my $tx = $t->ua->post('/api/v1/auth' => {Accept => '*/*'} => json => {username => 'admin', password => '1234'});
+  my $login = {
+    username => 'admin',
+    password => '1234',
+    organization => $args->{organization} || 'Vaara'
+  };
+  my $tx = $t->ua->post('/api/v1/auth' => {Accept => '*/*'} => json => $login);
   my $cookies = $tx->res->cookies;
   my $sessionCookie = $cookies->[0];
   $t->ua->cookie_jar->add($sessionCookie);

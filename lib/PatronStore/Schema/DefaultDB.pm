@@ -19,6 +19,7 @@ use Data::Dumper;
 
 use PatronStore::Schema;
 use PatronStore::Users;
+use PatronStore::Organizations;
 
 
 =head2 createDB
@@ -51,6 +52,11 @@ sub _populateCoreData {
   my ($schema) = @_;
 
   PatronStore::Users::createUser({id => 1, username => 'admin', realname => 'Super administrator account', password => '1234'});
+  #reverse alphabetical order is important to test sorting of results
+  PatronStore::Organizations::createOrganization({name => 'Vaara'});
+  PatronStore::Organizations::createOrganization({name => 'Outi'});
+  PatronStore::Organizations::createOrganization({name => 'Lumme'});
+  PatronStore::Organizations::createOrganization({name => 'Lappi'});
 }
 
 1;

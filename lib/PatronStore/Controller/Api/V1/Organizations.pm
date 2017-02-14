@@ -38,13 +38,37 @@ sub post {
   };
 }
 
+=head2 get
+
+=cut
+
 sub get {
   my $c = shift->openapi->valid_input or return;
-  my $organizationName = $c->validation->param('name');
+  my $id = $c->validation->param('id');
 
   try {
-    my $org = PatronStore::Organizations::getOrganization({name => $organizationName})->swaggerize($c->stash->{'openapi.op_spec'});
+    my $org = PatronStore::Organizations::getOrganization({id => $id})->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 200, openapi => $org);
+
+  } catch {
+    my $default = PS::Exception::handleDefaults($_);
+    return $c->render(status => 500, text => $default) if $default;
+    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Organization::NotFound');
+  };
+}
+
+=head2 list
+
+=cut
+
+sub list {
+  my $c = shift->openapi->valid_input or return;
+
+  try {
+    my $orgs = PatronStore::Ssns::listUsers();
+    my $spec = $c->stash->{'openapi.op_spec'};
+    @$orgs = map {$_->swaggerize($spec)} @$orgs;
+    return $c->render(status => 200, openapi => $orgs);
 
   } catch {
     my $default = PS::Exception::handleDefaults($_);

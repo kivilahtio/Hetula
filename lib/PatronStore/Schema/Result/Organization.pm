@@ -21,6 +21,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many(user_organizations => 'PatronStore::Schema::Result::UserOrganization', 'organizationid');
 __PACKAGE__->many_to_many(users => 'user_organizations', 'user');
+__PACKAGE__->has_many(ssn_organizations => 'PatronStore::Schema::Result::SsnOrganization', 'organizationid');
+__PACKAGE__->many_to_many(ssns => 'ssn_organizations', 'ssn');
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
 ############################################
 

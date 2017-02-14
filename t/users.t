@@ -189,12 +189,6 @@ subtest "Api V1 CRUD users' permissions", sub {
 
 subtest "Api V1 CRUD users' organizations", sub {
   my ($body, $äijä, $id) = @_;
-  ##SET TEST CONTEXT
-  #reverse alphabetical order is important to test sorting of results
-  PatronStore::Organizations::createOrganization({name => 'Vaara'});
-  PatronStore::Organizations::createOrganization({name => 'Lumme'});
-  PatronStore::Organizations::createOrganization({name => 'Lappi'});
-  ##CONTEXT SET
   t::lib::Auth::doPasswordLogin($t);
 
 

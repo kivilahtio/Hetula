@@ -38,12 +38,16 @@ sub getPermission {
 
 =head2 listPermissions
 
-Returns all Permissions
+@RETURNS ARRAYRef of PatronStore::Schema::Result::Permission-objects
+@THROWS PS::Exception::Permission::NotFound
 
 =cut
 
 sub listPermissions {
-    return PatronStore::Schema::schema()->resultset('Permission')->search();
+  my $rs = PatronStore::Schema::schema()->resultset('Permission');
+  my @perms = $rs->search()->all();
+  PS::Exception::Permission::NotFound->throw(error => 'No permissions found') unless @perms;
+  return \@perms;
 }
 
 =head2 createPermission

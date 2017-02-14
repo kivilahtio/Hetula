@@ -15,6 +15,23 @@ sub newFromDie {
   return PS::Exception->new(error => "$die");
 }
 
+=head2 rethrowDefault
+
+Because there are so many different types of exception classes with different
+interfaces, use this to rethrow if you dont know exactly what you are getting.
+
+=cut
+
+sub rethrowDefaults {
+  my ($e) = @_;
+
+  die $e unless blessed($e);
+  $e->throw if $e->isa('Mojo::Exception');
+  $e->rethrow if ref($e) eq 'PS::Exception'; #If this is THE 'PS::Exception', then handle it here
+  $e->rethrow if $e->isa('PS::Exception'); #If this is a subclass of 'PS::Exception', then let it through
+  $e->rethrow; #Exception classes are expected to implement rethrow like good exceptions should!!
+}
+
 =head2 handleDefaults
 
 Handles all the boring exception cases in a default way. Saving you a lot of typing.

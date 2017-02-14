@@ -21,6 +21,20 @@ use PatronStore::Schema;
 
 use PS::Exception::Organization::NotFound;
 
+=head2 listOrganizations
+
+@RETURNS ARRAYRef of PatronStore::Schema::Result::Organization-objects
+@THROWS PS::Exception::Organization::NotFound
+
+=cut
+
+sub listOrganizations {
+  my $rs = PatronStore::Schema::schema()->resultset('Organization');
+  my @orgs = $rs->search()->all();
+  PS::Exception::Organization::NotFound->throw(error => 'No organizations found') unless @orgs;
+  return \@orgs;
+}
+
 =head2 getOrganization
 
 @RETURNS PatronStore::Schema::Result::Organization

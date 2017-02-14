@@ -11,8 +11,9 @@ use Test::MockModule;
 
 use t::lib::TestContext;
 use t::lib::U;
-#$ENV{MOJO_OPENAPI_DEBUG} = 1;
-#$ENV{MOJO_LOG_LEVEL} = 'debug';
+$ENV{MOJO_OPENAPI_DEBUG} = 1;
+$ENV{MOJO_INACTIVITY_TIMEOUT} = 3600; #Useful for debugging
+$ENV{MOJO_LOG_LEVEL} = 'debug';
 my $t = t::lib::TestContext::set();
 ###  START TESTING  ###
 
@@ -20,11 +21,16 @@ use PatronStore::Users;
 
 
 subtest "Api V1 auth happy path", sub {
-  my ($cookies, $sessionCookie, $csrfHeader);
+  my ($cookies, $sessionCookie, $csrfHeader, $login);
 
   #This is duplicated in t::lib::Auth::doPasswordLogin(), login using doPasswordLogin() in other test cases instead of manually duplicating this.
   ok(1, 'When authenticating with proper credentials');
-  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => {username => 'admin', password => '1234'})
+  $login = {
+    username => 'admin',
+    password => '1234',
+    organization => 'Vaara'
+  };
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
     ->status_is(201);
   t::lib::U::debugResponse($t);
   $cookies = $t->tx->res->cookies;
@@ -58,39 +64,65 @@ subtest "Api V1 auth happy path", sub {
 
 
 subtest "Api V1 max_failed_login_count", sub {
+  my ($login);
+  $login = {
+    username => 'admin',
+    password => 'bad-pass-word-d',
+    organization => 'Vaara'
+  };
   $t->app->config->{max_failed_login_count} = 2;
 
-  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => {username => 'admin', password => 'bad-pass-word-d'})
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
     ->status_is(401, 'Bad password 1')
-    ->content_like(qr!PS::Exception::Auth::Authentication!, 'PS::Exception::Auth::Authentication received');
+    ->content_like(qr!PS::Exception::Auth::Password!, 'PS::Exception::Auth::Password received');
   t::lib::U::debugResponse($t);
 
-  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => {username => 'admin', password => 'bad-pass-word-d'})
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
     ->status_is(401, 'Bad password 2')
-    ->content_like(qr!PS::Exception::Auth::Authentication!, 'PS::Exception::Auth::Authentication received');
+    ->content_like(qr!PS::Exception::Auth::Password!, 'PS::Exception::Auth::Password received');
   t::lib::U::debugResponse($t);
 
-  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => {username => 'admin', password => 'bad-pass-word-d'})
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
     ->status_is(403, 'Bad password 2+1')
     ->content_like(qr!PS::Exception::Auth::AccountBlocked!, 'PS::Exception::Auth::AccountBlocked received');
   t::lib::U::debugResponse($t);
 
-  PatronStore::Users::getUser({username => 'admin'})->unblockLogin();
+  ok(PatronStore::Users::getUser({username => 'admin'})->unblockLogin(),
+                        'When the user is unblocked');
 
-  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => {username => 'admin', password => 'bad-pass-word-d'})
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
     ->status_is(401, 'Bad password can be given again')
-    ->content_like(qr!PS::Exception::Auth::Authentication!, 'PS::Exception::Auth::Authentication received');
+    ->content_like(qr!PS::Exception::Auth::Password!, 'PS::Exception::Auth::Password received');
   t::lib::U::debugResponse($t);
 };
 
 
 subtest "Api V1 unknown user", sub {
-  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => {username => 'naku-admin', password => '1234'})
+  my ($login);
+  $login = {
+    username => 'naku-admin',
+    password => '1234',
+    organization => 'Vaara'
+  };
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
     ->status_is(404, 'User is unknown')
     ->content_like(qr!PS::Exception::User::NotFound!, 'PS::Exception::User::NotFound received');
   t::lib::U::debugResponse($t);
 };
 
+
+subtest "Api V1 unknown organization", sub {
+  my ($login);
+  $login = {
+    username => 'admin',
+    password => '1234',
+    organization => 'Magic mushroom land'
+  };
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
+    ->status_is(404, 'Organization is unknown')
+    ->content_like(qr!PS::Exception::Organization::NotFound!, 'PS::Exception::Organization::NotFound received');
+  t::lib::U::debugResponse($t);
+};
 
 done_testing();
 

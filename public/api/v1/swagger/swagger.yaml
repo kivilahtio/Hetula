@@ -22,12 +22,18 @@ definitions:
     required:
       - username
       - password
+      - organization
     properties:
       username:
+        description: user.username
         type: string
       password:
+        description: user.password
         type: string
         format: password
+      organization:
+        description: organization.name
+        type: string
 
 
   organization:
@@ -72,7 +78,7 @@ definitions:
     required:
       - ssn
     properties:
-      ssnkey:
+      id:
         type: integer
       ssn:
         type: string
@@ -271,12 +277,12 @@ paths:
           description: Permission deleted succesfully
 
 
-  /ssns/{ssnkey}:
+  /ssns/{id}:
     parameters:
-      - name: ssnkey
+      - name: id
         in: path
         type: string
-        description: ssn.ssnkey
+        description: ssn.id
         required: true
     get:
       summary: Get the social security number
@@ -320,13 +326,11 @@ paths:
         201:
           description: SSN created succesfully
           schema:
-            type: string
-            description: ssn.ssnkey
+            $ref: '#/definitions/ssn'
         200:
           description: SSN already existed
           schema:
-            type: string
-            description: ssn.ssnkey
+            $ref: '#/definitions/ssn'
 
 
   /ping:

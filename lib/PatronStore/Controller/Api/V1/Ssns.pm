@@ -1,12 +1,12 @@
 use 5.22.0;
 
-package PatronStore::Controller::Api::V1::Users;
+package PatronStore::Controller::Api::V1::Ssns;
 
 use Mojo::Base 'Mojolicious::Controller';
 
 =head1 NAME
 
-PatronStore::Api::V1::Users
+PatronStore::Api::V1::Ssns
 
 =cut
 
@@ -16,34 +16,36 @@ $Carp::Verbose = 'true'; #die with stack trace
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
-use PatronStore::Users;
+use PatronStore::Ssns;
 
-use PS::Exception::User::NotFound;
+use PS::Exception::Ssn::NotFound;
 use PS::Exception::BadParameter;
 
 sub list {
   my $c = shift->openapi->valid_input or return;
 
   try {
-    my $users = PatronStore::Users::listUsers();
+    my $ssns = PatronStore::Ssns::listSsns();
     my $spec = $c->stash->{'openapi.op_spec'};
-    @$users = map {$_->swaggerize($spec)} @$users;
-    return $c->render(status => 200, openapi => $users);
+    @$ssns = map {$_->swaggerize($spec)} @$ssns;
+    return $c->render(status => 200, openapi => $ssns);
 
   } catch {
     my $default = PS::Exception::handleDefaults($_);
     return $c->render(status => 500, text => $default) if $default;
-    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Ssn::NotFound');
   };
 }
 
 sub post {
   my $c = shift->openapi->valid_input or return;
-  my $user = $c->validation->param("user");
+  my $ssn = $c->validation->param("ssn");
 
   try {
-    my $u = PatronStore::Users::createUser($user)->swaggerize($c->stash->{'openapi.op_spec'});
-    return $c->render(status => 201, openapi => $u);
+    my ($newSsnCreated, $u) = PatronStore::Ssns::createSsn($ssn, $c->stash->{organization});
+    $u = $u->swaggerize($c->stash->{'openapi.op_spec'});
+    return $c->render(status => 201, openapi => $u) if $newSsnCreated;
+    return $c->render(status => 200, openapi => $u);
 
   } catch {
     my $default = PS::Exception::handleDefaults($_);
@@ -53,22 +55,22 @@ sub post {
 
 sub put {
   my $c = shift->openapi->valid_input or return;
-  my $user = $c->validation->param("user");
+  my $ssn = $c->validation->param("ssn");
   my $id = $c->validation->param("id");
 
   try {
-    $user->{id} = $id;
-    if ($user->{id} && $user->{id} != $id) {
-        PS::Exception::BadParameter->throw(error => "id in url '$id' and id in User '".$user->{id}."' are different");
+    $ssn->{id} = $id;
+    if ($ssn->{id} && $ssn->{id} != $id) {
+        PS::Exception::BadParameter->throw(error => "id in url '$id' and id in Ssn '".$ssn->{id}."' are different");
     }
 
-    my $u = PatronStore::Users::modUser($user)->swaggerize($c->stash->{'openapi.op_spec'});
+    my $u = PatronStore::Ssns::modSsn($ssn)->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 200, openapi => $u);
 
   } catch {
     my $default = PS::Exception::handleDefaults($_);
     return $c->render(status => 500, text => $default) if $default;
-    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Ssn::NotFound');
     return $c->render(status => 400, text => $_->toText) if $_->isa('PS::Exception::BadParameter');
   };
 }
@@ -78,13 +80,13 @@ sub get {
   my $id = $c->validation->param('id');
 
   try {
-    my $user = PatronStore::Users::getUser({id => $id})->swaggerize($c->stash->{'openapi.op_spec'});
-    return $c->render(status => 200, openapi => $user);
+    my $ssn = PatronStore::Ssns::getSsn({id => $id})->swaggerize($c->stash->{'openapi.op_spec'});
+    return $c->render(status => 200, openapi => $ssn);
 
   } catch {
     my $default = PS::Exception::handleDefaults($_);
     return $c->render(status => 500, text => $default) if $default;
-    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Ssn::NotFound');
   };
 }
 
@@ -93,13 +95,13 @@ sub delete {
   my $id = $c->validation->param('id');
 
   try {
-    PatronStore::Users::deleteUser({id => $id});
+    PatronStore::Ssns::deleteSsn({id => $id}, $c->stash->{organization});
     return $c->render(status => 204, openapi => undef);
 
   } catch {
     my $default = PS::Exception::handleDefaults($_);
     return $c->render(status => 500, text => $default) if $default;
-    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Ssn::NotFound');
   };
 }
 

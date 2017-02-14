@@ -30,10 +30,9 @@ use PS::Exception::User::NotFound;
 =cut
 
 sub listUsers {
-  my ($args) = @_;
   my $rs = PatronStore::Schema::schema()->resultset('User');
   my @users = $rs->search()->all();
-  PS::Exception::User::NotFound->throw(error => 'No user found with params "'.Data::Dumper::Dumper($args).'"') unless @users;
+  PS::Exception::User::NotFound->throw(error => 'No users found') unless @users;
   return \@users;
 }
 

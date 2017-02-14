@@ -14,6 +14,9 @@ PatronStore
 
 use Mojo::IOLoop;
 
+use Try::Tiny;
+use Scalar::Util qw(blessed);
+
 use PatronStore::Schema;
 use PatronStore::Schema::DefaultDB;
 use PatronStore::Permissions;
@@ -115,7 +118,12 @@ sub createPermissions {
   my ($self) = @_;
 
   my %permissions;
-  my @oldPermissions = PatronStore::Permissions::listPermissions();
+  my @oldPermissions;
+  try {
+    @oldPermissions = PatronStore::Permissions::listPermissions();
+  } catch {
+    return if (blessed($_) && $_->isa('PS::Exception::Permission::NotFound')); #There are no permissions so that is ok
+  };
 
   my $apiV1Route = $self->routes->find('apiv1');
   my $children = $apiV1Route->children;
