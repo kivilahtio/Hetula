@@ -14,6 +14,7 @@ __PACKAGE__->add_columns(
   organizationid => { data_type => 'integer' },
 );
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->add_unique_constraint(['ssnid', 'organizationid']);
 __PACKAGE__->belongs_to(ssn => 'PatronStore::Schema::Result::Ssn', 'ssnid');
 __PACKAGE__->belongs_to(organization => 'PatronStore::Schema::Result::Organization', 'organizationid');
 

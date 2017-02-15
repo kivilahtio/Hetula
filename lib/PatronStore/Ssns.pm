@@ -24,6 +24,7 @@ use PatronStore::Schema;
 
 use PS::Exception;
 use PS::Exception::Ssn::NotFound;
+use PS::Exception::Ssn::AlreadyExists;
 
 =head2 listSsns
 
@@ -41,6 +42,7 @@ sub listSsns {
 
 =head2 getSsn
 
+@PARAM1 HASHRef of ssn-keys
 @RETURNS PatronStore::Schema::Result::Ssn
 @THROWS PS::Exception::Ssn::NotFound
 
@@ -54,6 +56,27 @@ sub getSsn {
   return $ssn;
 }
 
+=head2 getSsnForOrganization
+
+@PARAM1 HASHRef of ssn-keys
+@PAARM2 PatronStore::Schema::Result::Organization
+@RETURNS PatronStore::Schema::Result::Ssn
+@THROWS PS::Exception::Ssn::NotFound
+
+=cut
+
+sub getSsnForOrganization {
+  my ($args, $organization) = @_;
+  $args = {
+    'me.id' => $args->{id},
+    'ssn_organizations.organizationid' => $organization->id,
+  };
+  my $rs = PatronStore::Schema::schema()->resultset('Ssn');
+  my $ssn = $rs->search($args, {join => 'ssn_organizations'})->single();
+  PS::Exception::Ssn::NotFound->throw(error => 'No ssn found with params "'.Data::Dumper::Dumper($args).'"') unless $ssn;
+  return $ssn;
+}
+
 =head2 getFullSsn
 
 @RETURNS PatronStore::Schema::Result::Ssn, with Organizations and Permissions prefetched
@@ -62,7 +85,7 @@ sub getSsn {
 =cut
 
 sub getFullSsn {
-  my ($args) = @_;
+  my ($args, $organization) = @_;
   my $rs = PatronStore::Schema::schema()->resultset('Ssn');
   my $ssn = $rs->find({id => $args->{id}}, {prefetch => {ssn_organization => 'organization'}});
   return $ssn;
@@ -94,47 +117,19 @@ sub createSsn {
     $newSsnCreated = 0;
   } catch {
 
-    if (blessed($_) && $_->isa('PS::Exception::Ssn::NotFound')) {
-      $ssn = _createNewSsn($ssn);
-      $ssn->add_to_organizations({name => $organization});
+    if ($_->isa('PS::Exception::Ssn::NotFound')) {
+      $ssn = PatronStore::Schema::schema()->resultset('Ssn')->create($ssn);
+      $ssn->add_to_organizations($organization);
       $newSsnCreated = 1;
       return if $ssn;
     }
 
+    #Catch trying to re-add a organization dependency to an existing ssn
+    PS::Exception::Ssn::AlreadyExists->throw(ssn => $ssn, error => 'Ssn already exists for this given organization') if $_->isa('DBIx::Class::Exception') && $_->{msg} =~ /UNIQUE constraint failed/;
     PS::Exception::rethrowDefaults($_);
   };
 
   return ($newSsnCreated, $ssn);
-}
-
-=head2 _createNewSsn
-
-=cut
-
-sub _createNewSsn {
-  my ($ssn) = @_;
-  return PatronStore::Schema::schema()->resultset('Ssn')->create($ssn);
-}
-
-=head2 modSsn
-
-Updates and returns a Ssn
-
-=cut
-
-sub modSsn {
-  my ($ssn) = @_;
-  my ($organizations) = ($ssn->{organizations});
-  delete $ssn->{organizations};
-
-  my $oldSsn = getSsn({id => $ssn->{id}});
-  $oldSsn->update($ssn);
-
-  if ($organizations) {
-    $oldSsn->setOrganizations($organizations);
-  }
-
-  return $oldSsn;
 }
 
 =head2 deleteSsn
@@ -155,7 +150,7 @@ sub deleteSsn {
   my ($args, $organization) = @_;
   my $ssnDeleted;
 
-  my $ssn = getSsn({id => $args->{id}});
+  my $ssn = getSsn({id => $args->{id}}, $organization);
   $ssn->removeOrganization($organization);
   unless ($ssn->countOrganizations) {
     $ssn->delete;

@@ -22,6 +22,7 @@ __PACKAGE__->add_columns(
   updatetime => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->add_unique_constraint(['username']);
 __PACKAGE__->has_many(user_permissions => 'PatronStore::Schema::Result::UserPermission', 'userid');
 __PACKAGE__->many_to_many(permissions => 'user_permissions', 'permission');
 __PACKAGE__->has_many(user_organizations => 'PatronStore::Schema::Result::UserOrganization', 'userid');

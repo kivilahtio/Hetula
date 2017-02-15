@@ -50,28 +50,8 @@ sub post {
   } catch {
     my $default = PS::Exception::handleDefaults($_);
     return $c->render(status => 500, text => $default) if $default;
-  };
-}
-
-sub put {
-  my $c = shift->openapi->valid_input or return;
-  my $ssn = $c->validation->param("ssn");
-  my $id = $c->validation->param("id");
-
-  try {
-    $ssn->{id} = $id;
-    if ($ssn->{id} && $ssn->{id} != $id) {
-        PS::Exception::BadParameter->throw(error => "id in url '$id' and id in Ssn '".$ssn->{id}."' are different");
-    }
-
-    my $u = PatronStore::Ssns::modSsn($ssn)->swaggerize($c->stash->{'openapi.op_spec'});
-    return $c->render(status => 200, openapi => $u);
-
-  } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
-    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Ssn::NotFound');
-    return $c->render(status => 400, text => $_->toText) if $_->isa('PS::Exception::BadParameter');
+    return $c->render(status => 409, openapi => $_->{ssn}->swaggerize($c->stash->{'openapi.op_spec'}))
+            if $_->isa('PS::Exception::Ssn::AlreadyExists');
   };
 }
 
@@ -80,7 +60,7 @@ sub get {
   my $id = $c->validation->param('id');
 
   try {
-    my $ssn = PatronStore::Ssns::getSsn({id => $id})->swaggerize($c->stash->{'openapi.op_spec'});
+    my $ssn = PatronStore::Ssns::getSsnForOrganization({id => $id}, $c->stash->{organization})->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 200, openapi => $ssn);
 
   } catch {

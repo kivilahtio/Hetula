@@ -14,6 +14,7 @@ __PACKAGE__->add_columns(
   permissionid => { data_type => 'integer' },
 );
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->add_unique_constraint(['userid', 'permissionid']);
 __PACKAGE__->belongs_to('user' => 'PatronStore::Schema::Result::User', 'userid');
 __PACKAGE__->belongs_to('permission' => 'PatronStore::Schema::Result::Permission', 'permissionid');
 

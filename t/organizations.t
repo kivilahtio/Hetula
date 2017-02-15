@@ -4,6 +4,11 @@ binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
 
 use Mojo::Base -strict;
+use Carp;
+use autodie;
+$Carp::Verbose = 'true'; #die with stack trace
+use Try::Tiny;
+use Scalar::Util qw(blessed);
 
 use Test::More;
 use Test::Mojo;
@@ -31,15 +36,15 @@ subtest "Api V1 CRUD organizations happy path", sub {
     ->status_is(200, 'Then all the organizations are returned');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
-  is(scalar(@{$body->{organizations}}), 3, 'And got all organizations');
-  is($body->{organizations}->[0]->{name}, 'Lappi', 'And the organizations are alphabetically sorted 1');
-  is($body->{organizations}->[1]->{name}, 'Lumme', 'And the organizations are alphabetically sorted 2');
-  is($body->{organizations}->[2]->{name}, 'Outi',  'And the organizations are alphabetically sorted 3');
-  is($body->{organizations}->[3]->{name}, 'Vaara', 'And the organizations are alphabetically sorted 4');
-  ok($body->{organizations}->[3]->{id},            'And a organization has an id');
-  ok(DateTime::Format::ISO8601->parse_datetime($body->{organizations}->[3]->{createtime}),
+  is(scalar(@{$body}), 4, 'And got all organizations');
+  is($body->[0]->{name}, 'Lappi', 'And the organizations are alphabetically sorted 1');
+  is($body->[1]->{name}, 'Lumme', 'And the organizations are alphabetically sorted 2');
+  is($body->[2]->{name}, 'Outi',  'And the organizations are alphabetically sorted 3');
+  is($body->[3]->{name}, 'Vaara', 'And the organizations are alphabetically sorted 4');
+  ok($body->[3]->{id},            'And a organization has an id');
+  ok(DateTime::Format::ISO8601->parse_datetime($body->[3]->{createtime}),
                                                    'And the createtime is in ISO8601');
-  ok(DateTime::Format::ISO8601->parse_datetime($body->{organizations}->[3]->{updatetime}),
+  ok(DateTime::Format::ISO8601->parse_datetime($body->[3]->{updatetime}),
                                                    'And the updatetime is in ISO8601');
 
 

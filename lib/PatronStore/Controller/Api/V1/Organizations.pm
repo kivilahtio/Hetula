@@ -65,9 +65,9 @@ sub list {
   my $c = shift->openapi->valid_input or return;
 
   try {
-    my $orgs = PatronStore::Ssns::listUsers();
+    my $orgs = PatronStore::Organizations::listOrganizations();
     my $spec = $c->stash->{'openapi.op_spec'};
-    @$orgs = map {$_->swaggerize($spec)} @$orgs;
+    @$orgs = map {$_->swaggerize($spec)} sort {$a->name cmp $b->name} @$orgs;
     return $c->render(status => 200, openapi => $orgs);
 
   } catch {
@@ -79,10 +79,10 @@ sub list {
 
 sub delete {
   my $c = shift->openapi->valid_input or return;
-  my $organizationName = $c->validation->param('name');
+  my $id = $c->validation->param('id');
 
   try {
-    PatronStore::Organizations::deleteOrganization({name => $organizationName});
+    PatronStore::Organizations::deleteOrganization({id => $id});
     return $c->render(status => 204, openapi => undef);
 
   } catch {

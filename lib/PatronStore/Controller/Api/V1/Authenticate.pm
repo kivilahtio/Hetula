@@ -186,7 +186,7 @@ sub _checkOrganization {
   }
 
   my $org = PatronStore::Organizations::getOrganization($query);
-  $c->stash->{organization} = $org->name;
+  $c->stash->{organization} = $org;
   return $org;
 }
 

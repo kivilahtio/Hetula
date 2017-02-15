@@ -19,6 +19,7 @@ __PACKAGE__->add_columns(
   updatetime => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->add_unique_constraint(['ssn']);
 __PACKAGE__->has_many(ssn_organizations => 'PatronStore::Schema::Result::SsnOrganization', 'ssnid');
 __PACKAGE__->many_to_many(organizations => 'ssn_organizations', 'organization');
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
@@ -54,7 +55,7 @@ sub removeOrganization {
   my ($self, $organization) = @_;
 
   my $rs = PatronStore::Schema->schema->resultset('SsnOrganization');
-  $rs->search({userid => $self->id, organizationid => $organization->id})->delete;
+  $rs->search({ssnid => $self->id, organizationid => $organization->id})->delete;
 }
 
 =head2 countOrganizations
@@ -65,7 +66,7 @@ sub countOrganizations {
   my ($self) = @_;
 
   my $rs = PatronStore::Schema->schema->resultset('SsnOrganization');
-  return $rs->count({userid => $self->id});
+  return $rs->count({ssnid => $self->id});
 }
 
 ## ## ##   DONE WITH OBJECT METHODS    ## ## ##

@@ -4,7 +4,11 @@ binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
 
 use Mojo::Base -strict;
-use Mojo::ByteStream 'b';
+use Carp;
+use autodie;
+$Carp::Verbose = 'true'; #die with stack trace
+use Try::Tiny;
+use Scalar::Util qw(blessed);
 
 use Test::More;
 use Test::Mojo;

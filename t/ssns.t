@@ -4,6 +4,11 @@ binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
 
 use Mojo::Base -strict;
+use Carp;
+use autodie;
+$Carp::Verbose = 'true'; #die with stack trace
+use Try::Tiny;
+use Scalar::Util qw(blessed);
 
 use Test::More;
 use Test::Mojo;
@@ -14,7 +19,7 @@ use t::lib::Auth;
 use t::lib::U;
 $ENV{MOJO_OPENAPI_DEBUG} = 1;
 $ENV{MOJO_INACTIVITY_TIMEOUT} = 3600; #Useful for debugging
-$ENV{MOJO_LOG_LEVEL} = 'debug';
+#$ENV{MOJO_LOG_LEVEL} = 'debug';
 my $t = t::lib::TestContext::set();
 ###  START TESTING  ###
 
@@ -31,6 +36,19 @@ subtest "Api V1 CRUD ssns happy path", sub {
   ok(1, 'When POSTing a new ssn "230992-7866"');
   $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '230992-7866'})
     ->status_is(201, 'Then the ssn is created');
+  t::lib::U::debugResponse($t);
+  $body = $t->tx->res->json;
+  is($body->{ssn}, '230992-7866', 'And the ssn is "230992-7866"');
+  ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
+                             'And the createtime is in ISO8601');
+  ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
+                             'And the updatetime is in ISO8601');
+  is($body->{id}, 1,         'And the id is 1');
+
+
+  ok(1, 'When POSTing the ssn "230992-7866" again');
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '230992-7866'})
+    ->status_is(409, 'Then an error is returned about an existing ssn');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   is($body->{ssn}, '230992-7866', 'And the ssn is "230992-7866"');
@@ -75,6 +93,7 @@ subtest "Api V1 CRUD ssns happy path", sub {
 subtest "Api V1 multiple organizations access the same ssn", sub {
   my ($body, $ssn, $id) = @_;
 
+  eval {
   ok(t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'}),
      'Given a login session from organization Vaara');
 
@@ -88,7 +107,6 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   is($body->{organizations}->[0], 'Vaara', 'And the organization names are sorted alphabetically');
   is(scalar(@{$body->{organizations}}), 1, 'And there are no extra organizations on the list');
   ok($id, 'And has an id');
-  
 
 
   ok(t::lib::Auth::doPasswordLogin($t, {organization => 'Lumme'}),
@@ -206,8 +224,14 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
 
 
   ok(1, 'Finally. All organizations have deleted their reference to the ssn, so it is removed from the database');
-  $ssn = PatronStore::Ssns::getSsn({id => $id});
-  ok(not($ssn), 'Then no ssn is found in the db');
+  $ssn = undef;
+  try {
+    $ssn = PatronStore::Ssns::getSsn({id => $id});
+  } catch {
+    is(ref($_), 'PS::Exception::Ssn::NotFound', 'Then no ssn is found in the db');
+  }
+  };
+  ok(0, ref($@)." :> $@") if $@;
 };
 
 

@@ -205,12 +205,12 @@ paths:
             $ref: '#/definitions/organization'
 
 
-  /organizations/{name}:
+  /organizations/{id}:
     parameters:
-      - name: name
+      - name: id
         in: path
         type: string
-        description: organization.name
+        description: organization.id
         required: true
     get:
       summary: Get the organization
@@ -324,11 +324,15 @@ paths:
             $ref: '#/definitions/ssn'
       responses:
         201:
-          description: SSN created succesfully
+          description: SSN created succesfully for this organization
           schema:
             $ref: '#/definitions/ssn'
         200:
-          description: SSN already existed
+          description: SSN already exists but a dependency is added for this organization
+          schema:
+            $ref: '#/definitions/ssn'
+        409:
+          description: Ssn already exists for this given organization
           schema:
             $ref: '#/definitions/ssn'
 

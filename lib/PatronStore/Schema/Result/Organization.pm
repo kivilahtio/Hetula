@@ -19,6 +19,7 @@ __PACKAGE__->add_columns(
   updatetime => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->add_unique_constraint(['name']);
 __PACKAGE__->has_many(user_organizations => 'PatronStore::Schema::Result::UserOrganization', 'organizationid');
 __PACKAGE__->many_to_many(users => 'user_organizations', 'user');
 __PACKAGE__->has_many(ssn_organizations => 'PatronStore::Schema::Result::SsnOrganization', 'organizationid');
@@ -48,7 +49,7 @@ sub swaggerize {
 =cut
 
 sub toString {
-  shift->name;
+  return shift->name;
 }
 
 
