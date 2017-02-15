@@ -22,6 +22,8 @@ use PatronStore::Schema::DefaultDB;
 use PatronStore::Permissions;
 use PatronStore::Users;
 
+use PS::Exception::TimeZone;
+
 =head2 startup
 
 This method will run once at server start
@@ -32,6 +34,7 @@ sub startup {
   my $self = shift;
   my $mode = $self->mode;
 
+  $self->checkTimezone();
 
   # Forward error messages to the application log
   Mojo::IOLoop->singleton->reactor->on(error => sub {
@@ -77,6 +80,32 @@ sub startup {
   $r->get('/')->to('default#index');
   $r->get('/api/v1/doc')->to('Api::V1::Doc#index');
   $r->get('/api/v1/doc/*path')->to('Api::V1::Doc#swagger_ui');
+
+  ## Log the transaction
+  $self->hook(after_dispatch => sub {
+    my $c = shift;
+    my $path = $c->req->url->path;
+    PatronStore::Logs::createLog($c) if ($path =~ m!^/api/v1! && $path !~ m!^/api/v1/doc!);
+  });
+}
+
+=head2 checkTimezone
+
+Sets $ENV{TZ} for DateTime to properly do timezone calculations
+
+=cut
+
+sub checkTimezone {
+  my ($self) = @_;
+
+  my $env = $ENV{TZ};
+  unless($env) {
+    my $tz = `date +%z`;
+    unless ($tz) {
+      PS::Exception::TimeZone->throw(error => "checkTimezone():> Couldn't infer the correct timezone from \$ENV{TZ} or `date +%z`. You must set your system timezone");
+    }
+    $ENV{TZ} = $tz;
+  }
 }
 
 =head2 checkConfig

@@ -20,6 +20,7 @@ use Digest::SHA;
 use PatronStore;
 use PatronStore::Users;
 use PatronStore::Organizations;
+use PatronStore::Logs;
 
 use PS::Exception;
 use PS::Exception::Auth::Authentication;
@@ -75,14 +76,14 @@ sub post {
     return $c->render(status => 201, text => 'Session created');
 
   } catch {
-    return $c->render(status => 500, text => $_) unless blessed($_); #Hopefully with a good stack trace
+    my $default = PS::Exception::handleDefaults($_);
+    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 401, text => $_->toText) if $_->isa('PS::Exception::Auth::Authentication');
     return $c->render(status => 401, text => $_->toText) if $_->isa('PS::Exception::Auth::Password');
     return $c->render(status => 403, text => $_->toText) if $_->isa('PS::Exception::Auth');
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Organization::NotFound');
     return $c->render(status => 500, text => $_->toText) if $_->isa('PS::Exception');
-    return $c->render(status => 500, text => PS::Exception::toTextUnknown($_));
   };
 }
 
@@ -128,12 +129,17 @@ sub delete {
 
 =head2 _passwordAuthentication
 
+Does password authentication and other authentication checks.
+Puts the candidate user to $c->stash->{logginginuser} as an alternate
+means of getting the logging in user without a session.
+
 =cut
 
 sub _passwordAuthentication {
   my ($c, $uname, $pass, $organizationName) = @_;
 
   my $user = PatronStore::Users::getUser({username => $uname});
+  $c->stash->{logginginuser} = $user;
   try {
     _checkFailedLoginCount($c, $user);
     my $org = _checkOrganization($c, $organizationName);

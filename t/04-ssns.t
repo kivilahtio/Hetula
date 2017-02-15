@@ -17,8 +17,8 @@ use Test::MockModule;
 use t::lib::TestContext;
 use t::lib::Auth;
 use t::lib::U;
-$ENV{MOJO_OPENAPI_DEBUG} = 1;
-$ENV{MOJO_INACTIVITY_TIMEOUT} = 3600; #Useful for debugging
+#$ENV{MOJO_OPENAPI_DEBUG} = 1;
+#$ENV{MOJO_INACTIVITY_TIMEOUT} = 3600; #Useful for debugging
 #$ENV{MOJO_LOG_LEVEL} = 'debug';
 my $t = t::lib::TestContext::set();
 ###  START TESTING  ###

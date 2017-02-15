@@ -109,9 +109,13 @@ sub hasPermission {
   my ($self, $permissionName) = @_;
 
   my $rs = PatronStore::Schema->schema->resultset('Permission');
-  return $rs->find({'user_permissions.userid' => $self->id,
-                    'name' => $permissionName},
-                     {join => 'user_permissions'});
+  return $rs->search({
+      'user_permissions.userid' => $self->id,
+      'name' => $permissionName
+    },
+    {
+      join => 'user_permissions'
+    })->single;
 }
 
 =head2 grantPermission

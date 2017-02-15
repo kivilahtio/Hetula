@@ -95,23 +95,28 @@ definitions:
     required:
       - id
       - userid
-      - action
+      - organizationid
+      - request
       - description
-      - organization
-      - timestamp
+      - ip
+      - updatetime
     properties:
       id:
         type: integer
       userid:
-        type: integer
-      action:
+        description: The user.id
+        type: [integer, null]
+      organizationid:
+        description: The organization.id
+        type: [integer, null]
+      request:
         type: string
       description:
         type: string
-      organization:
-        description: The organization.name
+      ip:
+        description: Where the request originated from
         type: string
-      timestamp:
+      updatetime:
         type: string
         format: date-time
 
@@ -363,9 +368,17 @@ paths:
           in: query
           type: string
           format: date-time
+        - name: userid
+          description: Limit results by the given user
+          in: query
+          type: integer
+        - name: organizationid
+          description: Limit results by the given organization
+          in: query
+          type: integer
       responses:
         200:
-          description: All log entries between the given duration
+          description: All log entries narrowed with the given parameters
           schema:
             type: array
             items:

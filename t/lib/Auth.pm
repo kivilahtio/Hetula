@@ -2,6 +2,8 @@ use 5.22.0;
 
 package t::lib::Auth;
 
+use t::lib::U;
+
 =head2 doPasswordLogin
 
 Logs in and sets the session cookie to Test::Mojo->ua
@@ -16,12 +18,15 @@ Logs in and sets the session cookie to Test::Mojo->ua
 sub doPasswordLogin {
   my ($t, $args) = @_;
 
+  PatronStore::Users::getUser({username => 'admin'})->unblockLogin();
   my $login = {
     username => 'admin',
     password => '1234',
     organization => $args->{organization} || 'Vaara'
   };
   my $tx = $t->ua->post('/api/v1/auth' => {Accept => '*/*'} => json => $login);
+  $t->tx($tx); #Set the received transaction
+  t::lib::U::debugResponse($t);
   my $cookies = $tx->res->cookies;
   my $sessionCookie = $cookies->[0];
   $t->ua->cookie_jar->add($sessionCookie);

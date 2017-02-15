@@ -16,12 +16,15 @@ use Test::MockModule;
 
 use t::lib::TestContext;
 use t::lib::U;
-$ENV{MOJO_OPENAPI_DEBUG} = 1;
-$ENV{MOJO_INACTIVITY_TIMEOUT} = 3600; #Useful for debugging
-$ENV{MOJO_LOG_LEVEL} = 'debug';
+use t::lib::Auth;
+#$ENV{MOJO_OPENAPI_DEBUG} = 1;
+#$ENV{MOJO_INACTIVITY_TIMEOUT} = 3600; #Useful for debugging
+#$ENV{MOJO_LOG_LEVEL} = 'debug';
 my $t = t::lib::TestContext::set();
 ###  START TESTING  ###
 
+use DateTime;
+use DateTime::Format::ISO8601;
 use PatronStore::Users;
 
 
@@ -121,13 +124,69 @@ subtest "Api V1 unknown organization", sub {
   $login = {
     username => 'admin',
     password => '1234',
-    organization => 'Magic mushroom land'
+    organization => 'Magic mushroom land',
   };
   $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
     ->status_is(404, 'Organization is unknown')
     ->content_like(qr!PS::Exception::Organization::NotFound!, 'PS::Exception::Organization::NotFound received');
   t::lib::U::debugResponse($t);
 };
+
+
+subtest "Api V1 check logs", sub {
+  my ($logs, $url, $expectedLogs);
+  t::lib::Auth::doPasswordLogin($t);
+
+  $url = Mojo::URL->new('/api/v1/logs')->query({
+    since => DateTime->now()->subtract(minutes => 5)->iso8601,
+  });
+  $t->get_ok($url)
+    ->status_is(200, 'When logs since five minutes ago are fetched');
+  t::lib::U::debugResponse($t);
+  $logs = $t->tx->res->json;
+  $expectedLogs = [
+    #id userid organizationid request       description ip      updatetime
+    [1,  1, 1,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [2,  1, 1,   '204 GET /api/v1/auth',    undef, '127.0.0.1', undef],
+    [3,  1, 1,   '204 DELETE /api/v1/auth', undef, '127.0.0.1', undef],
+    [4,  '', '', '404 GET /api/v1/auth',    undef, '127.0.0.1', undef],
+    [5,  1, 1,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [6,  1, 1,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [7,  1, '',  '403 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [8,  1, 1,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [9,  '', '', '404 POST /api/v1/auth', 'PS::Exception::User::NotFound :> No user found wit', '127.0.0.1', undef],
+    [10, 1, '',   '404 POST /api/v1/auth', 'PS::Exception::Organization::NotFound :> No organi', '127.0.0.1', undef],
+    [11, 1, 1,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+  ];
+  t::lib::U::testLogs($expectedLogs, $logs);
+
+
+  $url = Mojo::URL->new('/api/v1/logs')->query({
+    since => DateTime->now()->iso8601,
+  });
+  $t->get_ok($url)
+    ->status_is(200, 'When logs since NOW() are fetched (there shouldn\'t be any)');
+  t::lib::U::debugResponse($t);
+  $logs = $t->tx->res->json;
+  $expectedLogs = [
+    #id userid organizationid request       description ip      updatetime
+  ];
+  t::lib::U::testLogs($expectedLogs, $logs);
+
+
+  $url = Mojo::URL->new('/api/v1/logs')->query({
+    userid => 1,
+  });
+  $t->get_ok($url)
+    ->status_is(200, 'When all logs for user "admin" are fetched');
+  t::lib::U::debugResponse($t);
+  $logs = $t->tx->res->json;
+  $expectedLogs = [
+    [],[],[],[],[],[],[],[],[],[],[],
+  ];
+  t::lib::U::testLogs($expectedLogs, $logs);
+};
+
 
 done_testing();
 
