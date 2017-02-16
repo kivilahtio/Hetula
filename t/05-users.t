@@ -144,49 +144,6 @@ subtest "Api V1 CRUD users' permissions", sub {
   ok($body->{permissions}, 'And has permissions-attribute');
   is($body->{permissions}->[0], 'users-get',    'And the permission names are sorted alphabetically 1');
   is($body->{permissions}->[1], 'users-post',   'And the permission names are sorted alphabetically 2');
-
-=head2 NOT IMPLEMENTED
-  ok(1, encode_utf8('When POSTing a new permission for "Maija Meikäläinen"'));
-  $t->post_ok("/api/v1/users/$id/" => {Accept => '*/*'} => json => {permission => 'users-post'})
-    ->status_is(200, 'Then the permission is granted');
-  #print $t->tx->res->text;
-  $body = $t->tx->res->json;
-  is($body->{permission}, 'users-post', 'And has the correct name');
-  ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
-                             'And the createtime is in ISO8601');
-  ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
-                             'And the updatetime is in ISO8601');
-
-
-  ok(1, encode_utf8('When GETting "Maija Meikäläinen", she should have the new permission'));
-  $t->get_ok("/api/v1/users/$id")
-    ->status_is(200, 'Then existing user is returned');
-  #print $t->tx->res->text;
-  $body = $t->tx->res->json;
-  ok($body->{permissions}, 'And has permissions-attribute');
-  is($body->{permissions}->[0], 'users-delete', 'And the permission names are sorted alphabetically 1');
-  is($body->{permissions}->[1], 'users-get',    'And the permission names are sorted alphabetically 2');
-  is($body->{permissions}->[2], 'users-post',   'And the permission names are sorted alphabetically 3 with the new permission');
-
-
-  ok(1, encode_utf8('When DELETEing a permission from "Maija Meikäläinen"'));
-  $t->post_ok("/api/v1/users/$id/" => {Accept => '*/*'} => json => {permission => 'users-post'})
-    ->status_is(204, 'Then the operation returns proper status');
-  #print $t->tx->res->text;
-  $body = $t->tx->res->text;
-  ok(not($body), 'And there is no body');
-
-
-  ok(1, encode_utf8('When GETting "Maija Meikäläinen"s permissions'));
-  $t->get_ok("/api/v1/users/$id/permissions")
-    ->status_is(200, 'Then permissions are returned');
-  #print $t->tx->res->text;
-  $body = $t->tx->res->json;
-  ok($body->{permissions}, 'And there are 2 permissions');
-  is($body->{permissions}->[0], 'users-delete', 'And the permission names are sorted alphabetically 1');
-  is($body->{permissions}->[1], 'users-get',    'And the permission names are sorted alphabetically 2');
-  isnt($body->{permissions}->[2], 'users-post', 'And the deleted permission is missing');
-=cut
 };
 
 
@@ -238,7 +195,7 @@ subtest "Api V1 CRUD users' organizations", sub {
 
   ok(1, encode_utf8('When GETing "Pää-Äijä"'));
   $t->get_ok("/api/v1/users/$id")
-    ->status_is(200, 'Then an "Pää-Äijä" is retrieved');
+    ->status_is(200, 'Then a "Pää-Äijä" is retrieved');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   ok($body->{organizations}, 'And has organizations-attribute');

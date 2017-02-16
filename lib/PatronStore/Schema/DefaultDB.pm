@@ -32,10 +32,12 @@ sub createDB {
   my () = @_;
   my $schema = PatronStore::Schema->schema();
 
+  #$schema->storage->debug(1);
   unless (_checkIfDBExists($schema)) {
     $schema->deploy();
     _populateCoreData($schema);
   }
+  #$schema->storage->debug(0);
 }
 
 sub _checkIfDBExists {

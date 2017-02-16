@@ -88,14 +88,25 @@ definitions:
           description: The organization.name
           type: string
 
+  ssnBatchReport:
+    type: object
+    description: A report of a individual ssn creation inside a big batch operation
+    required:
+      - ssn
+    properties:
+      status:
+        description: The HTTP status equivalent to what happened to this given ssn. See POST /api/v1/ssns for what the status codes mean.
+        type: integer
+      error:
+        description: Textual representation of any errors. If errors are present, the ssn only contains the ssn.ssn, not id.
+        type: string
+      ssn:
+        $ref: '#/definitions/ssn'
 
   log:
     type: object
     description: A log entry of any DB access
     required:
-      - id
-      - userid
-      - organizationid
       - request
       - description
       - ip
@@ -105,10 +116,10 @@ definitions:
         type: integer
       userid:
         description: The user.id
-        type: [integer, null]
+        type: integer
       organizationid:
         description: The organization.id
-        type: [integer, null]
+        type: integer
       request:
         type: string
       description:
@@ -214,7 +225,7 @@ paths:
     parameters:
       - name: id
         in: path
-        type: string
+        type: integer
         description: organization.id
         required: true
     get:
@@ -286,7 +297,7 @@ paths:
     parameters:
       - name: id
         in: path
-        type: string
+        type: integer
         description: ssn.id
         required: true
     get:
@@ -336,10 +347,34 @@ paths:
           description: SSN already exists but a dependency is added for this organization
           schema:
             $ref: '#/definitions/ssn'
+        400:
+          description: Ssn is malformed or schema validation error
         409:
           description: Ssn already exists for this given organization
           schema:
             $ref: '#/definitions/ssn'
+
+
+  /ssns/batch:
+    post:
+      summary: Add a batch of ssns
+      x-mojo-to: Ssns#batch
+      description: Add a big batch of ssns and receive reports of the batch operation for each ssn
+      parameters:
+        - name: ssns
+          in: body
+          schema:
+            type: array
+            items:
+              description: ssn.ssn
+              type: string
+      responses:
+        200:
+          description: Batch operation succeeded
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ssnBatchReport'
 
 
   /ping:
@@ -415,7 +450,7 @@ paths:
     parameters:
       - name: id
         in: path
-        type: string
+        type: integer
         description: user.id
         required: true
     get:

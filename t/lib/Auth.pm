@@ -18,12 +18,13 @@ Logs in and sets the session cookie to Test::Mojo->ua
 sub doPasswordLogin {
   my ($t, $args) = @_;
 
-  PatronStore::Users::getUser({username => 'admin'})->unblockLogin();
   my $login = {
-    username => 'admin',
-    password => '1234',
-    organization => $args->{organization} || 'Vaara'
+    username => $args->{username} || 'admin',
+    password => $args->{password} || '1234',
+    organization => $args->{organization} || 'Vaara',
   };
+  PatronStore::Users::getUser({username => $login->{username}})->unblockLogin();
+
   my $tx = $t->ua->post('/api/v1/auth' => {Accept => '*/*'} => json => $login);
   $t->tx($tx); #Set the received transaction
   t::lib::U::debugResponse($t);

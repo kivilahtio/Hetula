@@ -33,10 +33,32 @@ sub post {
     return $c->render(status => 201, openapi => $perm);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
+
+=head2 list
+
+=cut
+
+sub list {
+  my $c = shift->openapi->valid_input or return;
+
+  try {
+    my $perms = PatronStore::Permissions::listPermissions();
+    my $spec = $c->stash->{'openapi.op_spec'};
+    @$perms = map {$_->swaggerize($spec)} sort {$a->name cmp $b->name} @$perms;
+    return $c->render(status => 200, openapi => $perms);
+
+  } catch {
+    return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Permission::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
+  };
+}
+
+=head2 get
+
+=cut
 
 sub get {
   my $c = shift->openapi->valid_input or return;
@@ -47,11 +69,14 @@ sub get {
     return $c->render(status => 200, openapi => $perm);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Permission::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
+
+=head2 delete
+
+=cut
 
 sub delete {
   my $c = shift->openapi->valid_input or return;
@@ -62,9 +87,8 @@ sub delete {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Permission::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 

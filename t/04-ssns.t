@@ -28,17 +28,64 @@ use Encode qw(encode_utf8);
 use PatronStore::Ssns;
 
 
-subtest "Api V1 CRUD ssns happy path", sub {
+
+subtest "Api V1 creating invalid ssns", sub {
   my ($body) = @_;
+  eval {
+
   t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'});
 
 
-  ok(1, 'When POSTing a new ssn "230992-7866"');
+  ok(1, 'When POSTing an invalid ssn "230992-7866"');
   $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '230992-7866'})
+    ->status_is(400, 'Then the ssn is deemed invalid');
+  t::lib::U::debugResponse($t);
+  $body = $t->tx->res->text;
+  ok($body =~ /PS::Exception::Ssn::Invalid/, 'And the returned error is generic');
+
+  ok(1, 'When POSTing an invalid ssn "93091992-7866"');
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '93091992-7866'})
+    ->status_is(400, 'Then the ssn is deemed invalid');
+  t::lib::U::debugResponse($t);
+  $body = $t->tx->res->text;
+  ok($body =~ /PS::Exception::Ssn::Invalid/, 'And the returned error describes the validation error in detail');
+  ok($body =~ /Bad day '93'/,                'And the detail is specifically about a bad day');
+
+  ok(1, 'When POSTing an invalid ssn "23091992+7866"');
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '23091992+7866'})
+    ->status_is(400, 'Then the ssn is deemed invalid');
+  t::lib::U::debugResponse($t);
+  $body = $t->tx->res->text;
+  ok($body =~ /PS::Exception::Ssn::Invalid/, 'And the returned error describes the validation error in detail');
+  ok($body =~ /Given century separator/,     'And the detail is specifically about a bad century separator');
+
+  ok(1, 'When POSTing an invalid ssn "23091992-7866"');
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '23091992-7866'})
+    ->status_is(400, 'Then the ssn is deemed invalid');
+  t::lib::U::debugResponse($t);
+  $body = $t->tx->res->text;
+  ok($body =~ /PS::Exception::Ssn::Invalid/, 'And the returned error describes the validation error in detail');
+  ok($body =~ /Given check character '6'/,   'And the detail is specifically about a bad checksum');
+
+  };
+  ok(0, $@) if $@;
+};
+
+
+
+subtest "Api V1 CRUD ssns happy path", sub {
+  my ($body) = @_;
+  eval {
+
+  t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'});
+
+
+  ok(1, 'When POSTing a new ssn "05091828+478H"');
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '05091828+478H'})
     ->status_is(201, 'Then the ssn is created');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
-  is($body->{ssn}, '230992-7866', 'And the ssn is "230992-7866"');
+  is($body->{ssn}, '05091828+478H', 'And the ssn is "05091828+478H"');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
@@ -46,12 +93,12 @@ subtest "Api V1 CRUD ssns happy path", sub {
   is($body->{id}, 1,         'And the id is 1');
 
 
-  ok(1, 'When POSTing the ssn "230992-7866" again');
-  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '230992-7866'})
+  ok(1, 'When POSTing the ssn "05091828+478H" again');
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '05091828+478H'})
     ->status_is(409, 'Then an error is returned about an existing ssn');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
-  is($body->{ssn}, '230992-7866', 'And the ssn is "230992-7866"');
+  is($body->{ssn}, '05091828+478H', 'And the ssn is "05091828+478H"');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
@@ -59,12 +106,12 @@ subtest "Api V1 CRUD ssns happy path", sub {
   is($body->{id}, 1,         'And the id is 1');
 
 
-  ok(1, 'When GETting the ssn "230992-7866"');
+  ok(1, 'When GETting the ssn "05091828+478H"');
   $t->get_ok('/api/v1/ssns/1')
     ->status_is(200, 'Then the ssn is returned');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
-  is($body->{ssn}, '230992-7866', 'And the ssn is "230992-7866"');
+  is($body->{ssn}, '05091828+478H', 'And the ssn is "05091828+478H"');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
@@ -72,7 +119,7 @@ subtest "Api V1 CRUD ssns happy path", sub {
   is($body->{id}, 1,         'And the id is 1');
 
 
-  ok(1, 'When DELETEing the "230992-7866"-ssn');
+  ok(1, 'When DELETEing the "05091828+478H"-ssn');
   $t->delete_ok('/api/v1/ssns/1')
     ->status_is(204, 'Then the ssn is deleted');
   t::lib::U::debugResponse($t);
@@ -87,6 +134,9 @@ subtest "Api V1 CRUD ssns happy path", sub {
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   ok(not($body), 'And there is no json body');
+
+  };
+  ok(0, $@) if $@;
 };
 
 
@@ -97,8 +147,8 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'}),
      'Given a login session from organization Vaara');
 
-  ok(1, 'When POSTing a new ssn "230992-7866"');
-  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '230992-7866'})
+  ok(1, 'When POSTing a new ssn "05091828+478H"');
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '05091828+478H'})
     ->status_is(201, 'Then the ssn is created');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
@@ -112,8 +162,8 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(t::lib::Auth::doPasswordLogin($t, {organization => 'Lumme'}),
      'Given a login session from organization Lumme');
 
-  ok(1, 'When POSTing the same ssn "230992-7866" from another organization');
-  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '230992-7866'})
+  ok(1, 'When POSTing the same ssn "05091828+478H" from another organization');
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '05091828+478H'})
     ->status_is(200, 'Then a new organization has been added to a existing ssn');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
@@ -126,9 +176,9 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(t::lib::Auth::doPasswordLogin($t, {organization => 'Lappi'}),
      'Given a login session from organization Lappi');
 
-  ok(1, 'When POSTing the "230992-7866"-ssn with a given set of organizations');
+  ok(1, 'When POSTing the "05091828+478H"-ssn with a given set of organizations');
   $ssn = {
-    ssn => '230992-7866',
+    ssn => '05091828+478H',
     organizations => [
       'Outi',
       'Lappi',

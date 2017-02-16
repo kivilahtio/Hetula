@@ -42,6 +42,8 @@ sub swaggerize {
 
   my $swag = $self->{_column_data};
   $swag->{updatetime} =~ s/ /T/;
+  delete $swag->{userid} unless $swag->{userid};
+  delete $swag->{organizationid} unless $swag->{organizationid};
 
   return $swag;
 }

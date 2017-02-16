@@ -120,10 +120,16 @@ sub hasPermission {
 
 =head2 grantPermission
 
+@PARAM1 $self
+@PARAM2 permission.name or PatronStore::Schema::Result::Permission
+
 =cut
 
 sub grantPermission {
   my ($self, $permission) = @_;
+  unless (blessed($permission) && $permission->isa('PatronStore::Schema::Result::Permission')) {
+    $permission = PatronStore::Permissions::getPermission({name => $permission});
+  }
 
   my $rs = PatronStore::Schema->schema->resultset('UserPermission');
   $rs->update_or_create({userid => $self->id, permissionid => $permission->id});

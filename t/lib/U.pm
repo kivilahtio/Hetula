@@ -22,7 +22,7 @@ sub debugResponse {
   else {
     die "debugResponse():> I don't know what \$r '$r' is?";
   }
-  print $r->text."\n";
+  print "\n".$r->text."\n\n";
 }
 
 =head testLogs
@@ -37,7 +37,6 @@ If a expected log column is undef, testing that column is skipped
 
 sub testLogs {
   my ($expectedLogs, $realLogs) = @_;
-  my $ymd = DateTime->now()->ymd('-');
 
   my %keyToIndex = (
     id             => 0,
@@ -48,33 +47,65 @@ sub testLogs {
     ip             => 5,
     updatetime     => 6,
   );
+  testArrayToHash($expectedLogs, $realLogs, \%keyToIndex, 'request');
+}
 
-  is(scalar(@$expectedLogs), scalar(@$realLogs), 'Given expected and received logs, in equal amounts');
+=head testPermissions
+
+Tests if all the permissions are what is expected.
+If a expected log column is undef, testing that column is skipped
+
+@PARAM1 ARRAYRef of ARRAYRefs of expected permissions
+@PARAM2 ARRAYRef of HASHRefs of permissions received from the REST API
+
+=cut
+
+sub testPermissions {
+  my ($expectedPermissions, $realPermissions) = @_;
+
+  my %keyToIndex = (
+    id             => 0,
+    name           => 1,
+    createtime     => 2,
+    updatetime     => 3,
+  );
+  testArrayToHash($expectedPermissions, $realPermissions, \%keyToIndex, 'name');
+}
+
+sub testArrayToHash {
+  my ($expectedArrays, $realHashes, $keyToIndex, $identifyingKey) = @_;
+  my $ymd = DateTime->now()->ymd('-');
+
+  is(scalar(@$expectedArrays), scalar(@$realHashes), 'Given expected and received objects, in equal amounts');
 
   my $fault;
-  for (my $i=0 ; $i<scalar(@$expectedLogs) ; $i++) {
-    my $expected = $expectedLogs->[$i];
-    my $real = $realLogs->[$i];
-    foreach my $k (keys(%keyToIndex)) {
-      my $index = $keyToIndex{$k};
-      my ($rVal, $eVal) = ($real->{$k}, $expected->[$keyToIndex{$k}]);
+  for (my $i=0 ; $i<scalar(@$expectedArrays) ; $i++) {
+    my $expected = $expectedArrays->[$i];
+    my $real = $realHashes->[$i];
+    foreach my $k (keys(%$keyToIndex)) {
+      my $index = $keyToIndex->{$k};
+      my ($rVal, $eVal) = ($real->{$k}, $expected->[$keyToIndex->{$k}]);
       next if not(defined($eVal));
 
       if ($k eq 'updatetime') {
         $fault = 1 unless $rVal =~ /^$ymd/;
       }
       else {
-        $fault = 1 unless ("$rVal" eq "$eVal");
+        if (ref($eVal) eq 'Regexp') {
+          $fault = 1 unless ($rVal =~ $eVal);
+        } else {
+          $fault = 1 unless ($rVal eq $eVal);
+        }
       }
 
       if ($fault) {
-        $fault = "Log id '".$real->{id}."' for url '".$real->{request}."', key '$k'. Expected '$eVal', got '$rVal'";
+        $fault = "Object in index '$i' id '".$real->{id}."' for '".$real->{$identifyingKey}."', key '$k'. Expected '$eVal', got '$rVal'";
         last;
       }
     }
     last if $fault;
   }
-  is($fault || 'No problems', 'No problems', 'Then all logs are what is expected');
+  is($fault || 'No problems', 'No problems', 'Then all objects are what is expected');
 }
 
 1;

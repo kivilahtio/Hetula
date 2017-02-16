@@ -31,9 +31,8 @@ sub list {
     return $c->render(status => 200, openapi => $users);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -46,8 +45,7 @@ sub post {
     return $c->render(status => 201, openapi => $u);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -66,10 +64,9 @@ sub put {
     return $c->render(status => 200, openapi => $u);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
     return $c->render(status => 400, text => $_->toText) if $_->isa('PS::Exception::BadParameter');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -82,9 +79,8 @@ sub get {
     return $c->render(status => 200, openapi => $user);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -97,9 +93,8 @@ sub delete {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 

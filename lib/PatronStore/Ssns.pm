@@ -25,6 +25,7 @@ use PatronStore::Schema;
 use PS::Exception;
 use PS::Exception::Ssn::NotFound;
 use PS::Exception::Ssn::AlreadyExists;
+use PS::Exception::Ssn::Invalid;
 
 =head2 listSsns
 
@@ -91,6 +92,41 @@ sub getFullSsn {
   return $ssn;
 }
 
+=head2 batchCreateSsns
+
+=cut
+
+sub batchCreateSsns {
+  my ($batch, $organization) = @_;
+
+  for (my $i=0 ; $i<scalar(@$batch) ; $i++) {
+    my $newSsn = $batch->[$i];
+    try {
+      $batch->[$i] = {};
+      my ($newSsnCreated, $ssn) = createSsn({ssn => $newSsn}, $organization);
+      $batch->[$i]->{ssn} = $ssn;
+      $batch->[$i]->{status} = ($newSsnCreated ? 201 : 200);
+    } catch {
+      if ($_->isa('PS::Exception::Ssn::AlreadyExists')) {
+        $batch->[$i]->{ssn} = $_->ssn;
+        $batch->[$i]->{status} = 409;
+        $batch->[$i]->{error} = $_->toText;
+      }
+      elsif ($_->isa('PS::Exception::Ssn::Invalid')) {
+        $batch->[$i]->{ssn} = $_->ssn;
+        $batch->[$i]->{status} = 400;
+        $batch->[$i]->{error} = $_->toText;
+      }
+      else {
+        $batch->[$i]->{ssn} = {ssn => $newSsn};
+        $batch->[$i]->{status} = 500;
+        $batch->[$i]->{error} = "$_";
+      }
+    };
+  }
+  return $batch;
+}
+
 =head2 createSsn
 
 Adds a new organization which uses this ssn to an existing ssn,
@@ -109,9 +145,11 @@ sub createSsn {
   my ($ssn, $organization) = @_;
   my ($organizations) = ($ssn->{organizations});
   delete $ssn->{organizations}; #We ignore the organizations here.
+  $organization = PatronStore::Organizations::getOrganization({name => $organization}) unless blessed($organization);
 
   my $newSsnCreated;
   try {
+    validateSsn($ssn->{ssn});
     $ssn = getSsn({ssn => $ssn->{ssn}});
     $ssn->add_to_organizations($organization);
     $newSsnCreated = 0;
@@ -169,6 +207,71 @@ sub deleteSsn {
 sub _hashPassword {
   my ($ssn) = @_;
   $ssn->{password} = Digest::SHA::sha256($ssn->{password});
+}
+
+=head2 validateSsn
+
+@FROM Parts taken from https://gist.github.com/puumuki/11172310
+
+=cut
+
+my @ssnValidCheckKeys = (0..9,'A'..'Y');
+my %ssnCenturySeparators = (18 => '+', 19 => '-', 20 => 'A');
+my $ssnParserRegexp = qr/^(\d\d)(\d\d)(\d\d)(\d\d)(.)(\d\d\d)(.)$/;
+
+sub validateSsn {
+  my ($ssnString) = @_;
+
+  if ($ssnString =~ $ssnParserRegexp) {
+    #$1 Day
+    #$2 Month
+    #$3 Century
+    #$4 Decade + year
+    #$5 Century separator
+    #$6 order number
+    #$7 check number
+    unless ($1 <= 31 && $1 > 0) {
+      PS::Exception::Ssn::Invalid->throw(error => "Bad day '$1'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    }
+    unless ($2 <= 12 && $2 > 0) {
+      PS::Exception::Ssn::Invalid->throw(error => "Bad month '$2'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    }
+    unless ($ssnCenturySeparators{$3}) {
+      PS::Exception::Ssn::Invalid->throw(error => "Unknown century '$3'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    }
+    unless ($5 eq $ssnCenturySeparators{$3}) {
+      PS::Exception::Ssn::Invalid->throw(error => "Given century separator '$5' doesn't match the expected '$ssnCenturySeparators{$3}'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    }
+    my $checkChar = _getSsnChecksum($1, $2, $3, $4, $6);
+    unless ($7 eq $checkChar) {
+      PS::Exception::Ssn::Invalid->throw(error => "Given check character '$7' doesn't match the expected '$checkChar'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    }
+  }
+  else {
+    PS::Exception::Ssn::Invalid->throw(error => "Ssn '$ssnString' is invalid", ssn => {ssn => $ssnString});
+  }
+}
+
+=head2 _getSsnChecksum
+
+=cut
+
+sub _getSsnChecksum {
+  my ($day, $month, $century, $year, $checkNumber) = @_;
+
+  my $checkNumberSum = sprintf("%02d%02d%2d%2d%03d", $day, $month, $century, $year, $checkNumber);
+  my $checkNumberIndex = $checkNumberSum % 31;
+  return $ssnValidCheckKeys[$checkNumberIndex];
+}
+
+=head2 createRandomSsn
+
+=cut
+
+sub createRandomSsn {
+  my $s = [int(1+rand(28)), int(1+rand(12)), int(18+rand(3)), int(1+rand(99)), undef, int(2+rand(889)), undef];
+  $s = sprintf("%02d%02d%02d%02d%s%03d%s", $s->[0], $s->[1], $s->[2], $s->[3], $ssnCenturySeparators{$s->[2]}, $s->[5], _getSsnChecksum($s->[0], $s->[1], $s->[2], $s->[3], $s->[5]));
+  return $s;
 }
 
 1;

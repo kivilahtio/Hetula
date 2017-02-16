@@ -42,7 +42,7 @@ sub under {
 
   #If we are authenticating, don't demand an existing authentication
   my $path = $c->req->url->path;
-  if ($path =~ m!^/api/v1/auth!i) {
+  if ($path =~ m!^/api/v1(/auth)?$!i) {
     _updateCsrfToken($c);
     return 1;
   }
@@ -52,10 +52,9 @@ sub under {
     $authStatus = $c->_authorizeApiResource();
   } catch {
     $authStatus = 0;
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 403, text => $_->toText) if $_->isa('PS::Exception::Auth');
     return $c->render(status => 403, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 
   return $authStatus;
@@ -76,14 +75,13 @@ sub post {
     return $c->render(status => 201, text => 'Session created');
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 401, text => $_->toText) if $_->isa('PS::Exception::Auth::Authentication');
     return $c->render(status => 401, text => $_->toText) if $_->isa('PS::Exception::Auth::Password');
     return $c->render(status => 403, text => $_->toText) if $_->isa('PS::Exception::Auth');
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Organization::NotFound');
     return $c->render(status => 500, text => $_->toText) if $_->isa('PS::Exception');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -99,11 +97,10 @@ sub get {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    return $c->render(status => 500, text => $_) unless blessed($_); #Hopefully with a good stack trace
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Auth');
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::User::NotFound');
     return $c->render(status => 500, text => $_->toText) if $_->isa('PS::Exception');
-    return $c->render(status => 500, text => PS::Exception::toTextUnknown($_));
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -120,10 +117,9 @@ sub delete {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    return $c->render(status => 500, text => $_) unless blessed($_); #Hopefully with a good stack trace
     return $c->render(status => 404, text => $_) if $_->isa('PS::Exception::Auth');
     return $c->render(status => 500, text => $_) if $_->isa('PS::Exception');
-    return $c->render(status => 500, text => $_);
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -219,7 +215,7 @@ sub _authorizeApiResource {
           if $validation->csrf_protect->has_error('csrf_token');
 
   #Check for the proper permission
-  my $permissionNeeded = PatronStore::getPermissionFromRoute($c->match->endpoint);
+  my $permissionNeeded = $c->app->getPermissionFromRoute($c->match->endpoint);
   unless ($user->hasPermission($permissionNeeded)) {
     PS::Exception::Auth::Authorization->throw(error => "User '".$user->username."' is missing permission '$permissionNeeded'");
   }

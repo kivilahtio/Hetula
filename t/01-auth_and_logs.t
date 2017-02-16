@@ -133,15 +133,77 @@ subtest "Api V1 unknown organization", sub {
 };
 
 
+subtest "Api V1 no permission", sub {
+  my ($nakuadmin, $nakulogin);
+  eval {
+
+
+
+  ok(1, 'Scenario: User with no permissions tries to do stuff');
+  $nakuadmin = PatronStore::Users::createUser({
+    username => 'naku-admin-taas',
+    password => '1234-4321',
+    realname => 'Naku nakuttaja',
+    organizations => [
+      'Vaara',
+    ],
+  });
+  $nakulogin = {
+    username => 'naku-admin-taas',
+    password => '1234-4321',
+    organization => 'Vaara',
+  };
+  ok($nakuadmin, 'Given a user "Naku Nakuttaja" with no permissions');
+
+  ok(t::lib::Auth::doPasswordLogin($t, $nakulogin),
+     'And "Naku Nakuttaja" is logged in');
+
+  ok(1, 'When he tries to add a new organization');
+  $t->post_ok('/api/v1/organizations' => {Accept => '*/*'} => json => {name => 'Magic mushroom land'})
+    ->status_is(403, 'Then he doesn\'t have permissions to do that')
+    ->content_like(qr!PS::Exception::Auth::Authorization!, 'PS::Exception::Auth::Authorization received');
+  t::lib::U::debugResponse($t);
+
+  ok(1, 'When he tries to add a new user');
+  $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $nakuadmin->swaggerize)
+    ->status_is(403, 'Then he doesn\'t have permissions to do that')
+    ->content_like(qr!PS::Exception::Auth::Authorization!, 'PS::Exception::Auth::Authorization received');
+  t::lib::U::debugResponse($t);
+
+
+
+  ok(1, 'Scenario: Admin grants a priviledge and user can access something');
+  ok($nakuadmin->grantPermission($t->app->getPermissionFromRouteString('POST', '/api/v1/organizations')),
+        'Given the "organizations-post"-permission to "Naku Nakuttaja"');
+
+  ok(1, 'When he tries to add a new organization');
+  $t->post_ok('/api/v1/organizations' => {Accept => '*/*'} => json => {name => 'Magic mushroom land'})
+    ->status_is(201, 'Then he miraculously succeeds!');
+  t::lib::U::debugResponse($t);
+
+  ok(1, 'When he tries to add a new user');
+  $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $nakuadmin->swaggerize)
+    ->status_is(403, 'Then he doesn\'t have permissions to do that')
+    ->content_like(qr!PS::Exception::Auth::Authorization!, 'PS::Exception::Auth::Authorization received');
+  t::lib::U::debugResponse($t);
+
+  };
+  ok(0, $@) if $@;
+};
+
+
 subtest "Api V1 check logs", sub {
   my ($logs, $url, $expectedLogs);
-  t::lib::Auth::doPasswordLogin($t);
+  sleep 1; #Make sure the current second changes so we dont acidentally mix previous log entries.
+  #Since fetching logs is logged and the following login, we can test the time limits for following actions
+  my $startOfSubtest = DateTime->now();
+  t::lib::Auth::doPasswordLogin($t, {organization => 'Lumme'});
 
   $url = Mojo::URL->new('/api/v1/logs')->query({
-    since => DateTime->now()->subtract(minutes => 5)->iso8601,
+    until => DateTime->now()->iso8601,
   });
   $t->get_ok($url)
-    ->status_is(200, 'When logs since five minutes ago are fetched');
+    ->status_is(200, 'When all logs up until now are fetched');
   t::lib::U::debugResponse($t);
   $logs = $t->tx->res->json;
   $expectedLogs = [
@@ -156,33 +218,36 @@ subtest "Api V1 check logs", sub {
     [8,  1, 1,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
     [9,  '', '', '404 POST /api/v1/auth', 'PS::Exception::User::NotFound :> No user found wit', '127.0.0.1', undef],
     [10, 1, '',   '404 POST /api/v1/auth', 'PS::Exception::Organization::NotFound :> No organi', '127.0.0.1', undef],
-    [11, 1, 1,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [],[],[],[],[],
+    [16, 1, 3,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
   ];
   t::lib::U::testLogs($expectedLogs, $logs);
 
 
   $url = Mojo::URL->new('/api/v1/logs')->query({
-    since => DateTime->now()->iso8601,
+    since => $startOfSubtest->iso8601,
   });
   $t->get_ok($url)
-    ->status_is(200, 'When logs since NOW() are fetched (there shouldn\'t be any)');
+    ->status_is(200, 'When logs since the start of this subtest are fetched');
   t::lib::U::debugResponse($t);
   $logs = $t->tx->res->json;
   $expectedLogs = [
-    #id userid organizationid request       description ip      updatetime
+    #id userid organizationid request          description ip           updatetime
+    [16,  1, 3,   '201 POST /api/v1/auth',          undef, '127.0.0.1', undef],
+    [17,  1, 3,   qr!^\Q200 GET /api/v1/logs?until=\E!, undef, '127.0.0.1', undef],
   ];
   t::lib::U::testLogs($expectedLogs, $logs);
 
 
   $url = Mojo::URL->new('/api/v1/logs')->query({
-    userid => 1,
+    organizationid => 3,
   });
   $t->get_ok($url)
-    ->status_is(200, 'When all logs for user "admin" are fetched');
+    ->status_is(200, 'When all logs for organization "Lumme" are fetched');
   t::lib::U::debugResponse($t);
   $logs = $t->tx->res->json;
   $expectedLogs = [
-    [],[],[],[],[],[],[],[],[],[],[],
+    [],[],[],
   ];
   t::lib::U::testLogs($expectedLogs, $logs);
 };

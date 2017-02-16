@@ -21,6 +21,7 @@ use PatronStore::Schema;
 use PatronStore::Schema::DefaultDB;
 use PatronStore::Permissions;
 use PatronStore::Users;
+use PatronStore::Logs;
 
 use PS::Exception::TimeZone;
 
@@ -157,7 +158,7 @@ sub createPermissions {
   my $apiV1Route = $self->routes->find('apiv1');
   my $children = $apiV1Route->children;
   foreach my $childRoute (@$children) {
-    my $perm = getPermissionFromRoute($childRoute);
+    my $perm = $self->getPermissionFromRoute($childRoute);
     $permissions{$perm} = 1 if $perm;
   }
 
@@ -189,22 +190,39 @@ sub createPermissions {
 
 Use this to authorize user.
 
+@PARAM1 Mojo::Route
+@RETURNS String, the permission name
+
 =cut
 
 sub getPermissionFromRoute {
-  my ($route) = @_;
+  my ($self, $route) = @_;
 
   my $verb = $route->via;
-  die "getPermissionFromRoute():> Route '".$route->to_string."' has multiple HTTP methods '@$verb' it is allowed to handle. I am not prepared to handle multiple methods!" if scalar(@$verb) > 1;
-  $verb = lc($verb->[0]);
-  return undef if $verb eq 'OPTIONS';
-  my $path = $route->to_string;
-  $path =~ s!^/api/v[^/]+/?!!;  #Remove api base path
-  $path =~ s!/!-!g;             #Substitute / with -
-  $path =~ s!\(.*\)!!;          #Remove placeholders
-  $path =~ s!-$!!;              #Remove trailing -
-  return undef unless $path;
-  return "$path-$verb";
+  my $routeString = $route->to_string;
+  die "getPermissionFromRoute():> Route '$routeString' has multiple HTTP methods '@$verb' it is allowed to handle. I am not prepared to handle multiple methods!" if scalar(@$verb) > 1;
+  $verb = $verb->[0];
+  return $self->getPermissionFromRouteString($verb, $routeString);
+}
+
+=head2 getPermissionFromRouteString
+
+@PARAM1 String, the HTTP verb
+@PARAM2 String, the route path, eg. /api/v1/organizations
+@RETURNS String, the permission name
+
+=cut
+
+sub getPermissionFromRouteString {
+  my ($self, $verb, $routeString) = @_;
+  $verb = lc($verb);
+  return undef if $verb eq 'options';
+  $routeString =~ s!^/api/v[^/]+/?!!;  #Remove api base path
+  $routeString =~ s!/!-!g;             #Substitute / with -
+  $routeString =~ s!\(.*\)!!;          #Remove placeholders
+  $routeString =~ s!-$!!;              #Remove trailing -
+  return undef unless $routeString;
+  return "$routeString-$verb";
 }
 
 1;

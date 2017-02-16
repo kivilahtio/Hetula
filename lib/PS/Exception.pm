@@ -63,7 +63,7 @@ sub handleDefaults {
   return $e unless blessed($e);
   return toTextMojo($e) if $e->isa('Mojo::Exception');
   return $e->toText if ref($e) eq 'PS::Exception'; #If this is THE 'PS::Exception', then handle it here
-  return undef if $e->isa('PS::Exception'); #If this is a subclass of 'PS::Exception', then let it through
+  return $e->toText if $e->isa('PS::Exception'); #If this is a subclass of 'PS::Exception', then let it through
   return toTextUnknown($e);
 }
 

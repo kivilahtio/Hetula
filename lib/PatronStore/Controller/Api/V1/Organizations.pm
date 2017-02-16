@@ -33,8 +33,7 @@ sub post {
     return $c->render(status => 201, openapi => $org);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -51,9 +50,8 @@ sub get {
     return $c->render(status => 200, openapi => $org);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Organization::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -71,9 +69,8 @@ sub list {
     return $c->render(status => 200, openapi => $orgs);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Organization::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 
@@ -86,9 +83,8 @@ sub delete {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Organization::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 

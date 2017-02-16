@@ -37,9 +37,8 @@ sub list {
     return $c->render(status => 200, openapi => $logs);
 
   } catch {
-    my $default = PS::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
     return $c->render(status => 404, text => $_->toText) if $_->isa('PS::Exception::Log::NotFound');
+    return $c->render(status => 500, text => PS::Exception::handleDefaults($_));
   };
 }
 

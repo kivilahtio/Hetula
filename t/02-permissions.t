@@ -26,6 +26,29 @@ my $t = t::lib::TestContext::set();
 use DateTime::Format::ISO8601;
 
 
+subtest "Api V1 verify default route permissions", sub {
+  my ($body, $id) = @_;
+  t::lib::Auth::doPasswordLogin($t);
+
+
+  ok(1, 'When GETting all the permissions');
+  $t->get_ok("/api/v1/permissions")
+    ->status_is(200, 'Then a ton of permissions is retrieved');
+  t::lib::U::debugResponse($t);
+  my $permissions = $t->tx->res->json;
+  my $expected = [
+    #id        name           createtime updatetime
+    [qr/^\d+$/, 'auth-delete',  undef, undef],
+    [qr/^\d+$/, 'auth-get',     undef, undef],
+    [qr/^\d+$/, 'auth-post',    undef, undef],
+    [qr/^\d+$/, 'logs-get',     undef, undef],
+    [],[],[],[],[],[],[],[],[],[],[],[],[],[],
+    [qr/^\d+$/, 'users-put',    undef, undef],
+  ];
+  t::lib::U::testPermissions($expected, $permissions);
+};
+
+
 subtest "Api V1 CRUD permissions happy path", sub {
   my ($body, $id) = @_;
   t::lib::Auth::doPasswordLogin($t);
