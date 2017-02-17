@@ -1,25 +1,22 @@
-# Patron-Store
-Secure storage for private patron data.
+# Hetula-main
 
-#h2. Installation
+Collection of Hetula-specific client libraries and a Hetula-server
 
-apt-get install
-  - git
-  - tig
-  - cpanminus
-  - build-essential
-  - libssl-dev
-  - libipc-system-simple-perlcpanm
+#Hetula
 
-cpanm Dist::Zilla
+Is a secure storage for private patron data.
 
-dzil authordeps --missing | cpanm
-dzil listdeps --missing | cpanm
+See Hetula/README.md
 
-dzil install
+#libhetula-perl
 
+Perl client for interfacing with Hetula
 
-# If you want to run tests, you need the following packages:
+See libhetula-perl/README.md
 
-apt-get install sqlite3
+#libhetula-perl
+
+Javascript client for interfacing with Hetula
+
+See libhetula-javascript/README.md
 
