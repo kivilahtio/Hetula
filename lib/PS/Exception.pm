@@ -4,7 +4,7 @@ package PS::Exception;
 
 use Exception::Class (
   'PS::Exception' => {
-    description => 'PatronStore exceptions base class',
+    description => 'Hetula exceptions base class',
   },
 );
 

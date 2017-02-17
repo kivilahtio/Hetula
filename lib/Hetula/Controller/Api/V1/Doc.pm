@@ -1,12 +1,12 @@
 use 5.22.0;
 
-package PatronStore::Controller::Api::V1::Doc;
+package Hetula::Controller::Api::V1::Doc;
 
 use Mojo::Base 'Mojolicious::Controller';
 
 =head1 NAME
 
-PatronStore::Api::V1::Doc
+Hetula::Api::V1::Doc
 
 =cut
 

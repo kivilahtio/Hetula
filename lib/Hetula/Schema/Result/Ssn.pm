@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore::Schema::Result::Ssn;
+package Hetula::Schema::Result::Ssn;
 use base qw/DBIx::Class::Core/;
 
 use Carp;
@@ -20,7 +20,7 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->add_unique_constraint(['ssn']);
-__PACKAGE__->has_many(ssn_organizations => 'PatronStore::Schema::Result::SsnOrganization', 'ssnid');
+__PACKAGE__->has_many(ssn_organizations => 'Hetula::Schema::Result::SsnOrganization', 'ssnid');
 __PACKAGE__->many_to_many(organizations => 'ssn_organizations', 'organization');
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
 ############################################
@@ -54,7 +54,7 @@ sub swaggerize {
 sub removeOrganization {
   my ($self, $organization) = @_;
 
-  my $rs = PatronStore::Schema->schema->resultset('SsnOrganization');
+  my $rs = Hetula::Schema->schema->resultset('SsnOrganization');
   $rs->search({ssnid => $self->id, organizationid => $organization->id})->delete;
 }
 
@@ -65,7 +65,7 @@ sub removeOrganization {
 sub countOrganizations {
   my ($self) = @_;
 
-  my $rs = PatronStore::Schema->schema->resultset('SsnOrganization');
+  my $rs = Hetula::Schema->schema->resultset('SsnOrganization');
   return $rs->count({ssnid => $self->id});
 }
 

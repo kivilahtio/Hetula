@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore::Controller::Default;
+package Hetula::Controller::Default;
 
 use Mojo::Base 'Mojolicious::Controller';
 
@@ -10,7 +10,7 @@ $Carp::Verbose = 'true'; #die with stack trace
 
 =head1 NAME
 
-PatronStore::Controller::Default
+Hetula::Controller::Default
 
 =cut
 

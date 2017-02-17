@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Komodo Project File - DO NOT EDIT -->
-<project id="e7dab5f9-cd11-4313-b5c9-0b42478f0a75" kpf_version="5" name="PatronStore.komodoproject">
+<project id="e7dab5f9-cd11-4313-b5c9-0b42478f0a75" kpf_version="5" name="Hetula.komodoproject">
 <preference-set idref="e7dab5f9-cd11-4313-b5c9-0b42478f0a75" id="project" preftype="project">
   <string relative="path" id="perlExtraPaths">lib:/home/kivilahtio/workspace/Patron-Store:/home/kivilahtio/work/Patron-Store</string>
   <long id="prefs_version">1</long>

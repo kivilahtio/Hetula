@@ -1,12 +1,12 @@
 use 5.22.0;
 
-package PatronStore::Controller::Api::V1::Organizations;
+package Hetula::Controller::Api::V1::Organizations;
 
 use Mojo::Base 'Mojolicious::Controller';
 
 =head1 NAME
 
-PatronStore::Api::V1::Organizations
+Hetula::Api::V1::Organizations
 
 =cut
 
@@ -16,7 +16,7 @@ $Carp::Verbose = 'true'; #die with stack trace
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
-use PatronStore::Organizations;
+use Hetula::Organizations;
 
 =head2 post
 
@@ -29,7 +29,7 @@ sub post {
   my $organization = $c->validation->param("organization");
 
   try {
-    my $org = PatronStore::Organizations::createOrganization($organization)->swaggerize($c->stash->{'openapi.op_spec'});
+    my $org = Hetula::Organizations::createOrganization($organization)->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 201, openapi => $org);
 
   } catch {
@@ -46,7 +46,7 @@ sub get {
   my $id = $c->validation->param('id');
 
   try {
-    my $org = PatronStore::Organizations::getOrganization({id => $id})->swaggerize($c->stash->{'openapi.op_spec'});
+    my $org = Hetula::Organizations::getOrganization({id => $id})->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 200, openapi => $org);
 
   } catch {
@@ -63,7 +63,7 @@ sub list {
   my $c = shift->openapi->valid_input or return;
 
   try {
-    my $orgs = PatronStore::Organizations::listOrganizations();
+    my $orgs = Hetula::Organizations::listOrganizations();
     my $spec = $c->stash->{'openapi.op_spec'};
     @$orgs = map {$_->swaggerize($spec)} sort {$a->name cmp $b->name} @$orgs;
     return $c->render(status => 200, openapi => $orgs);
@@ -79,7 +79,7 @@ sub delete {
   my $id = $c->validation->param('id');
 
   try {
-    PatronStore::Organizations::deleteOrganization({id => $id});
+    Hetula::Organizations::deleteOrganization({id => $id});
     return $c->render(status => 204, openapi => undef);
 
   } catch {

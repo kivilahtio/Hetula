@@ -1,12 +1,12 @@
 use 5.22.0;
 
-package PatronStore::Controller::Api::V1::Ssns;
+package Hetula::Controller::Api::V1::Ssns;
 
 use Mojo::Base 'Mojolicious::Controller';
 
 =head1 NAME
 
-PatronStore::Api::V1::Ssns
+Hetula::Api::V1::Ssns
 
 =cut
 
@@ -16,7 +16,7 @@ $Carp::Verbose = 'true'; #die with stack trace
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
-use PatronStore::Ssns;
+use Hetula::Ssns;
 
 use PS::Exception::Ssn::NotFound;
 use PS::Exception::BadParameter;
@@ -29,7 +29,7 @@ sub list {
   my $c = shift->openapi->valid_input or return;
 
   try {
-    my $ssns = PatronStore::Ssns::listSsns();
+    my $ssns = Hetula::Ssns::listSsns();
     my $spec = $c->stash->{'openapi.op_spec'};
     @$ssns = map {$_->swaggerize($spec)} @$ssns;
     return $c->render(status => 200, openapi => $ssns);
@@ -49,7 +49,7 @@ sub post {
   my $ssn = $c->validation->param("ssn");
 
   try {
-    my ($newSsnCreated, $u) = PatronStore::Ssns::createSsn($ssn, $c->stash->{organization});
+    my ($newSsnCreated, $u) = Hetula::Ssns::createSsn($ssn, $c->stash->{organization});
     $u = $u->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 201, openapi => $u) if $newSsnCreated;
     return $c->render(status => 200, openapi => $u);
@@ -72,7 +72,7 @@ sub batch {
   my $ssns = $c->validation->every_param("ssns");
 
   try {
-    my $ssnReports = PatronStore::Ssns::batchCreateSsns($ssns, $c->stash->{organization});
+    my $ssnReports = Hetula::Ssns::batchCreateSsns($ssns, $c->stash->{organization});
     my $spec = $c->stash->{'openapi.op_spec'};
     @$ssnReports = map {
       $_->{ssn} = $_->{ssn}->swaggerize($spec) if blessed($_->{ssn});
@@ -94,7 +94,7 @@ sub get {
   my $id = $c->validation->param('id');
 
   try {
-    my $ssn = PatronStore::Ssns::getSsnForOrganization({id => $id}, $c->stash->{organization})->swaggerize($c->stash->{'openapi.op_spec'});
+    my $ssn = Hetula::Ssns::getSsnForOrganization({id => $id}, $c->stash->{organization})->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 200, openapi => $ssn);
 
   } catch {
@@ -112,7 +112,7 @@ sub delete {
   my $id = $c->validation->param('id');
 
   try {
-    PatronStore::Ssns::deleteSsn({id => $id}, $c->stash->{organization});
+    Hetula::Ssns::deleteSsn({id => $id}, $c->stash->{organization});
     return $c->render(status => 204, openapi => undef);
 
   } catch {

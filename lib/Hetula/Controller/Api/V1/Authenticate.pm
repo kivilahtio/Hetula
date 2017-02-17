@@ -1,12 +1,12 @@
 use 5.22.0;
 
-package PatronStore::Controller::Api::V1::Authenticate;
+package Hetula::Controller::Api::V1::Authenticate;
 
 use Mojo::Base 'Mojolicious::Controller';
 
 =head1 NAME
 
-PatronStore::Api::V1::Authenticate
+Hetula::Api::V1::Authenticate
 
 =cut
 
@@ -17,10 +17,10 @@ use Try::Tiny;
 use Scalar::Util qw(blessed);
 use Digest::SHA;
 
-use PatronStore;
-use PatronStore::Users;
-use PatronStore::Organizations;
-use PatronStore::Logs;
+use Hetula;
+use Hetula::Users;
+use Hetula::Organizations;
+use Hetula::Logs;
 
 use PS::Exception;
 use PS::Exception::Auth::Authentication;
@@ -93,7 +93,7 @@ sub get {
     PS::Exception::Auth::Authentication->throw(error => 'Session not found')
       unless $userid;
 
-    PatronStore::Users::getUser({id => $userid}); #Exception if no user
+    Hetula::Users::getUser({id => $userid}); #Exception if no user
     return $c->render(status => 204, openapi => undef);
 
   } catch {
@@ -134,7 +134,7 @@ means of getting the logging in user without a session.
 sub _passwordAuthentication {
   my ($c, $uname, $pass, $organizationName) = @_;
 
-  my $user = PatronStore::Users::getUser({username => $uname});
+  my $user = Hetula::Users::getUser({username => $uname});
   $c->stash->{logginginuser} = $user;
   try {
     _checkFailedLoginCount($c, $user);
@@ -173,7 +173,7 @@ sub _checkPassword {
 
 Checks if the given organization exists and sets it to stash
 
-@RETURNS PatronStore::Schema::Result::Organization
+@RETURNS Hetula::Schema::Result::Organization
 
 =cut
 
@@ -187,7 +187,7 @@ sub _checkOrganization {
     $query = {name => $organizationIdOrName};
   }
 
-  my $org = PatronStore::Organizations::getOrganization($query);
+  my $org = Hetula::Organizations::getOrganization($query);
   $c->stash->{organization} = $org;
   return $org;
 }
@@ -207,7 +207,7 @@ sub _authorizeApiResource {
   my $org = $c->_checkOrganization($c->session->{organizationid});
 
   #Check if the user exists
-  my $user = PatronStore::Users::getUser({id => $userid});
+  my $user = Hetula::Users::getUser({id => $userid});
 
   # Check CSRF token X-CSRF-Token
   my $validation = $c->validation;
@@ -227,8 +227,8 @@ sub _authorizeApiResource {
 Establishes a Mojolicious::Session
 
 @PARAM1 Mojo::Controller
-@PARAM2 PatronStore::Schema::Result::User
-@PARAM3 PatronStore::Schema::Result::Organization
+@PARAM2 Hetula::Schema::Result::User
+@PARAM3 Hetula::Schema::Result::Organization
 
 =cut
 

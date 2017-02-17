@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore::Schema::Result::Log;
+package Hetula::Schema::Result::Log;
 use base qw/DBIx::Class::Core/;
 
 use Carp;
@@ -22,8 +22,8 @@ __PACKAGE__->add_columns(
   updatetime     => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
 __PACKAGE__->set_primary_key('id');
-__PACKAGE__->belongs_to(user => 'PatronStore::Schema::Result::User', 'userid');
-__PACKAGE__->belongs_to(organization => 'PatronStore::Schema::Result::Organization', 'organizationid');
+__PACKAGE__->belongs_to(user => 'Hetula::Schema::Result::User', 'userid');
+__PACKAGE__->belongs_to(organization => 'Hetula::Schema::Result::Organization', 'organizationid');
 
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
 ############################################

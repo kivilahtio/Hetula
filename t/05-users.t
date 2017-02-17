@@ -25,7 +25,7 @@ my $t = t::lib::TestContext::set();
 
 use DateTime::Format::ISO8601;
 use Encode qw(encode_utf8);
-use PatronStore::Organizations;
+use Hetula::Organizations;
 
 
 subtest "Api V1 CRUD users happy path", sub {

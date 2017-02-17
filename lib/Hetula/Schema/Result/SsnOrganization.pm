@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore::Schema::Result::SsnOrganization;
+package Hetula::Schema::Result::SsnOrganization;
 use base qw/DBIx::Class::Core/;
 
 use Carp;
@@ -15,7 +15,7 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->add_unique_constraint(['ssnid', 'organizationid']);
-__PACKAGE__->belongs_to(ssn => 'PatronStore::Schema::Result::Ssn', 'ssnid');
-__PACKAGE__->belongs_to(organization => 'PatronStore::Schema::Result::Organization', 'organizationid');
+__PACKAGE__->belongs_to(ssn => 'Hetula::Schema::Result::Ssn', 'ssnid');
+__PACKAGE__->belongs_to(organization => 'Hetula::Schema::Result::Organization', 'organizationid');
 
 1;

@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore;
+package Hetula;
 
 use Mojo::Base 'Mojolicious';
 
@@ -8,7 +8,7 @@ use Mojo::Base 'Mojolicious';
 
 =head1 NAME
 
-PatronStore
+Hetula
 
 =cut
 
@@ -17,11 +17,11 @@ use Mojo::IOLoop;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
-use PatronStore::Schema;
-use PatronStore::Schema::DefaultDB;
-use PatronStore::Permissions;
-use PatronStore::Users;
-use PatronStore::Logs;
+use Hetula::Schema;
+use Hetula::Schema::DefaultDB;
+use Hetula::Permissions;
+use Hetula::Users;
+use Hetula::Logs;
 
 use PS::Exception::TimeZone;
 
@@ -48,13 +48,13 @@ sub startup {
 
   my $config;
   if ($mode eq 'testing') {
-    $config = $self->plugin(Config => {file => 't/config/PatronStore.conf'});
+    $config = $self->plugin(Config => {file => 't/config/hetula.conf'});
   }
-  elsif (-e '/etc/patronstore/PatronStore.conf') {
-    $config = $self->plugin(Config => {file => '/etc/patronstore/PatronStore.conf'});
+  elsif (-e '/etc/hetula/Hetula.conf') {
+    $config = $self->plugin(Config => {file => '/etc/hetula/hetula.conf'});
   }
   else {
-    $config = $self->plugin(Config => {file => 'config/PatronStore.conf'});
+    $config = $self->plugin(Config => {file => 'config/hetula.conf'});
   }
   checkConfig($self, $config);
 
@@ -62,13 +62,13 @@ sub startup {
   $self->sessions->default_expiration($config->{session_expiration});
   $self->secrets([$config->{secret}]);
 
-  PatronStore::Schema::SetConfig($config);
-  PatronStore::Schema::DefaultDB::createDB();
+  Hetula::Schema::SetConfig($config);
+  Hetula::Schema::DefaultDB::createDB();
 
   $self->plugin("OpenAPI" => {
     url => $self->home->rel_file("public/api/v1/swagger/swagger.yaml"),
     #Set the root route for Swagger2 routes. Sets the namespace to look for Api::V1 automatically.
-    route => $self->routes->under("/api/v1")->to(namespace => 'PatronStore::Controller::Api::V1', controller => 'Authenticate', action => 'under'),
+    route => $self->routes->under("/api/v1")->to(namespace => 'Hetula::Controller::Api::V1', controller => 'Authenticate', action => 'under'),
     log_level => 'debug',
     coerce => 1,
     spec_route_name => 'apiv1spec',
@@ -86,7 +86,7 @@ sub startup {
   $self->hook(after_dispatch => sub {
     my $c = shift;
     my $path = $c->req->url->path;
-    PatronStore::Logs::createLog($c) if ($path =~ m!^/api/v1! && $path !~ m!^/api/v1/doc!);
+    Hetula::Logs::createLog($c) if ($path =~ m!^/api/v1! && $path !~ m!^/api/v1/doc!);
   });
 }
 
@@ -150,7 +150,7 @@ sub createPermissions {
   my %permissions;
   my @oldPermissions;
   try {
-    @oldPermissions = PatronStore::Permissions::listPermissions();
+    @oldPermissions = Hetula::Permissions::listPermissions();
   } catch {
     return if (blessed($_) && $_->isa('PS::Exception::Permission::NotFound')); #There are no permissions so that is ok
   };
@@ -179,9 +179,9 @@ sub createPermissions {
     $oldPerm->delete;
   }
   ## These new permissions are not present, so add them and grant them to the admin
-  my $user = PatronStore::Users::getUser({username => 'admin'});
+  my $user = Hetula::Users::getUser({username => 'admin'});
   while(my ($k,$v) = each(%permissions)) {
-    my $permission = PatronStore::Permissions::createPermission({name => $k});
+    my $permission = Hetula::Permissions::createPermission({name => $k});
     $user->grantPermission($permission);
   }
 }

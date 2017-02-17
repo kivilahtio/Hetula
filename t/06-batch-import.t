@@ -26,7 +26,7 @@ my $t = t::lib::TestContext::set();
 use Time::HiRes;
 use DateTime::Format::ISO8601;
 use Encode qw(encode_utf8);
-use PatronStore::Ssns;
+use Hetula::Ssns;
 
 
 subtest "Api V1 Batch import a small batch of ssns", sub {
@@ -37,7 +37,7 @@ subtest "Api V1 Batch import a small batch of ssns", sub {
 
   $ssnBatch = randomSsnBatch(4);
   ok(1, 'Given a small batch of ssns');
-  ok(PatronStore::Ssns::createSsn({ssn => $ssnBatch->[1]}, 'Vaara'),
+  ok(Hetula::Ssns::createSsn({ssn => $ssnBatch->[1]}, 'Vaara'),
         '    Of which the 2nd one already exists');
   ok($ssnBatch->[2] = 'asdfasd',
         '    Of which the 3rd one is malformed');
@@ -126,7 +126,7 @@ sub randomSsnBatch {
   my ($count) = @_;
   my @ssns;
   foreach my $i (0..($count-1)) {
-    push(@ssns, PatronStore::Ssns::createRandomSsn());
+    push(@ssns, Hetula::Ssns::createRandomSsn());
   }
   return \@ssns;
 }

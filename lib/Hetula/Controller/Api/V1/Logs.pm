@@ -1,12 +1,12 @@
 use 5.22.0;
 
-package PatronStore::Controller::Api::V1::Logs;
+package Hetula::Controller::Api::V1::Logs;
 
 use Mojo::Base 'Mojolicious::Controller';
 
 =head1 NAME
 
-PatronStore::Api::V1::Logs
+Hetula::Api::V1::Logs
 
 =cut
 
@@ -16,7 +16,7 @@ $Carp::Verbose = 'true'; #die with stack trace
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
-use PatronStore::Logs;
+use Hetula::Logs;
 
 =head2 list
 
@@ -26,7 +26,7 @@ sub list {
   my $c = shift->openapi->valid_input or return;
 
   try {
-    my $logs = PatronStore::Logs::searchLogs({
+    my $logs = Hetula::Logs::searchLogs({
       since          => $c->validation->param('since'),
       until          => $c->validation->param('until'),
       userid         => $c->validation->param('userid'),

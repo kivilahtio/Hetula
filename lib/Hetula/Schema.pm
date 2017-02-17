@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore::Schema;
+package Hetula::Schema;
 use base qw/DBIx::Class::Schema/;
 
 use Carp;
@@ -13,14 +13,14 @@ __PACKAGE__->load_namespaces();
 
 =head1 NAME
 
-PatronStore::Schema
+Hetula::Schema
 
 =head2 SYNOPSIS
 
 Manages DBIx::Class DB access
 
-  use PatronStore::Schema;
-  my $schema = PatronStore::Schema->get();
+  use Hetula::Schema;
+  my $schema = Hetula::Schema->get();
 
 =cut
 
@@ -111,7 +111,7 @@ sub _new_schema {
     %encoding_attr = ( sqlite_unicode => 1 );
   }
 
-  my $schema = PatronStore::Schema->connect(
+  my $schema = Hetula::Schema->connect(
     {
       dsn => "dbi:$db_driver:database=$db_name;host=$db_host;port=$db_port",
       user => $db_user,

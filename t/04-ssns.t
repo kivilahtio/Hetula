@@ -25,7 +25,7 @@ my $t = t::lib::TestContext::set();
 
 use DateTime::Format::ISO8601;
 use Encode qw(encode_utf8);
-use PatronStore::Ssns;
+use Hetula::Ssns;
 
 
 
@@ -276,7 +276,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(1, 'Finally. All organizations have deleted their reference to the ssn, so it is removed from the database');
   $ssn = undef;
   try {
-    $ssn = PatronStore::Ssns::getSsn({id => $id});
+    $ssn = Hetula::Ssns::getSsn({id => $id});
   } catch {
     is(ref($_), 'PS::Exception::Ssn::NotFound', 'Then no ssn is found in the db');
   }

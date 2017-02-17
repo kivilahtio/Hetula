@@ -1,12 +1,12 @@
 use 5.22.0;
 
-package PatronStore::Controller::Api::V1::Permissions;
+package Hetula::Controller::Api::V1::Permissions;
 
 use Mojo::Base 'Mojolicious::Controller';
 
 =head1 NAME
 
-PatronStore::Api::V1::Permissions
+Hetula::Api::V1::Permissions
 
 =cut
 
@@ -16,7 +16,7 @@ $Carp::Verbose = 'true'; #die with stack trace
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
-use PatronStore::Permissions;
+use Hetula::Permissions;
 
 =head2 post
 
@@ -29,7 +29,7 @@ sub post {
   my $permission = $c->validation->param("permission");
 
   try {
-    my $perm = PatronStore::Permissions::createPermission($permission)->swaggerize($c->stash->{'openapi.op_spec'});
+    my $perm = Hetula::Permissions::createPermission($permission)->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 201, openapi => $perm);
 
   } catch {
@@ -45,7 +45,7 @@ sub list {
   my $c = shift->openapi->valid_input or return;
 
   try {
-    my $perms = PatronStore::Permissions::listPermissions();
+    my $perms = Hetula::Permissions::listPermissions();
     my $spec = $c->stash->{'openapi.op_spec'};
     @$perms = map {$_->swaggerize($spec)} sort {$a->name cmp $b->name} @$perms;
     return $c->render(status => 200, openapi => $perms);
@@ -65,7 +65,7 @@ sub get {
   my $id = $c->validation->param('id');
 
   try {
-    my $perm = PatronStore::Permissions::getPermission({id => $id})->swaggerize($c->stash->{'openapi.op_spec'});
+    my $perm = Hetula::Permissions::getPermission({id => $id})->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 200, openapi => $perm);
 
   } catch {
@@ -83,7 +83,7 @@ sub delete {
   my $id = $c->validation->param('id');
 
   try {
-    PatronStore::Permissions::deletePermission({id => $id});
+    Hetula::Permissions::deletePermission({id => $id});
     return $c->render(status => 204, openapi => undef);
 
   } catch {

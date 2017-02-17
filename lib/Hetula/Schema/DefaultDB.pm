@@ -1,10 +1,10 @@
 use 5.22.0;
 
-package PatronStore::Schema::DefaultDB;
+package Hetula::Schema::DefaultDB;
 
 =head1 NAME
 
-PatronStore::Schema::DefaultDB
+Hetula::Schema::DefaultDB
 
 =head2 SYNOPSIS
 
@@ -17,9 +17,9 @@ use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
 use Data::Dumper;
 
-use PatronStore::Schema;
-use PatronStore::Users;
-use PatronStore::Organizations;
+use Hetula::Schema;
+use Hetula::Users;
+use Hetula::Organizations;
 
 
 =head2 createDB
@@ -30,7 +30,7 @@ Creates the DB structure if it is not present
 
 sub createDB {
   my () = @_;
-  my $schema = PatronStore::Schema->schema();
+  my $schema = Hetula::Schema->schema();
 
   #$schema->storage->debug(1);
   unless (_checkIfDBExists($schema)) {
@@ -53,12 +53,12 @@ sub _checkIfDBExists {
 sub _populateCoreData {
   my ($schema) = @_;
 
-  PatronStore::Users::createUser({id => 1, username => 'admin', realname => 'Super administrator account', password => '1234'});
+  Hetula::Users::createUser({id => 1, username => 'admin', realname => 'Super administrator account', password => '1234'});
   #reverse alphabetical order is important to test sorting of results
-  PatronStore::Organizations::createOrganization({name => 'Vaara'});
-  PatronStore::Organizations::createOrganization({name => 'Outi'});
-  PatronStore::Organizations::createOrganization({name => 'Lumme'});
-  PatronStore::Organizations::createOrganization({name => 'Lappi'});
+  Hetula::Organizations::createOrganization({name => 'Vaara'});
+  Hetula::Organizations::createOrganization({name => 'Outi'});
+  Hetula::Organizations::createOrganization({name => 'Lumme'});
+  Hetula::Organizations::createOrganization({name => 'Lappi'});
 }
 
 1;

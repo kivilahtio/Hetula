@@ -1,10 +1,10 @@
 use 5.22.0;
 
-package PatronStore::Users;
+package Hetula::Users;
 
 =head1 NAME
 
-PatronStore::Users
+Hetula::Users
 
 =head2 SYNOPSIS
 
@@ -18,19 +18,19 @@ $Carp::Verbose = 'true'; #die with stack trace
 use Data::Dumper;
 use Digest::SHA;
 
-use PatronStore::Schema;
+use Hetula::Schema;
 
 use PS::Exception::User::NotFound;
 
 =head2 listUsers
 
-@RETURNS ARRAYRef of PatronStore::Schema::Result::User-objects
+@RETURNS ARRAYRef of Hetula::Schema::Result::User-objects
 @THROWS PS::Exception::User::NotFound
 
 =cut
 
 sub listUsers {
-  my $rs = PatronStore::Schema::schema()->resultset('User');
+  my $rs = Hetula::Schema::schema()->resultset('User');
   my @users = $rs->search()->all();
   PS::Exception::User::NotFound->throw(error => 'No users found') unless @users;
   return \@users;
@@ -38,14 +38,14 @@ sub listUsers {
 
 =head2 getUser
 
-@RETURNS PatronStore::Schema::Result::User
+@RETURNS Hetula::Schema::Result::User
 @THROWS PS::Exception::User::NotFound
 
 =cut
 
 sub getUser {
   my ($args) = @_;
-  my $rs = PatronStore::Schema::schema()->resultset('User');
+  my $rs = Hetula::Schema::schema()->resultset('User');
   my $user = $rs->find($args);
   PS::Exception::User::NotFound->throw(error => 'No user found with params "'.Data::Dumper::Dumper($args).'"') unless $user;
   return $user;
@@ -53,14 +53,14 @@ sub getUser {
 
 =head2 getFullUser
 
-@RETURNS PatronStore::Schema::Result::User, with Organizations and Permissions prefetched
+@RETURNS Hetula::Schema::Result::User, with Organizations and Permissions prefetched
 @THROWS PS::Exception::User::NotFound
 
 =cut
 
 sub getFullUser {
   my ($args) = @_;
-  my $rs = PatronStore::Schema::schema()->resultset('User');
+  my $rs = Hetula::Schema::schema()->resultset('User');
   my $user = $rs->find({id => $args->{id}}, {prefetch => {user_permission => 'permission',
                                                           user_organization => 'organization'}});
   return $user;
@@ -99,7 +99,7 @@ Creates a User-entry to the DB
 
 sub _createUser {
   my ($user) = @_;
-  my $rs = PatronStore::Schema::schema()->resultset('User');
+  my $rs = Hetula::Schema::schema()->resultset('User');
   return $rs->create($user);
 }
 

@@ -1,10 +1,10 @@
 use 5.22.0;
 
-package PatronStore::Organizations;
+package Hetula::Organizations;
 
 =head1 NAME
 
-PatronStore::Organizations
+Hetula::Organizations
 
 =head2 SYNOPSIS
 
@@ -17,19 +17,19 @@ use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
 use Data::Dumper;
 
-use PatronStore::Schema;
+use Hetula::Schema;
 
 use PS::Exception::Organization::NotFound;
 
 =head2 listOrganizations
 
-@RETURNS ARRAYRef of PatronStore::Schema::Result::Organization-objects
+@RETURNS ARRAYRef of Hetula::Schema::Result::Organization-objects
 @THROWS PS::Exception::Organization::NotFound
 
 =cut
 
 sub listOrganizations {
-  my $rs = PatronStore::Schema::schema()->resultset('Organization');
+  my $rs = Hetula::Schema::schema()->resultset('Organization');
   my @orgs = $rs->search()->all();
   PS::Exception::Organization::NotFound->throw(error => 'No organizations found') unless @orgs;
   return \@orgs;
@@ -37,14 +37,14 @@ sub listOrganizations {
 
 =head2 getOrganization
 
-@RETURNS PatronStore::Schema::Result::Organization
+@RETURNS Hetula::Schema::Result::Organization
 @THROWS PS::Exception::Organization::NotFound
 
 =cut
 
 sub getOrganization {
   my ($args) = @_;
-  my $rs = PatronStore::Schema::schema()->resultset('Organization');
+  my $rs = Hetula::Schema::schema()->resultset('Organization');
   my $o = $rs->find($args);
   PS::Exception::Organization::NotFound->throw(error => 'No organization found with params "'.Data::Dumper::Dumper($args).'"') unless $o;
   return $o;
@@ -59,7 +59,7 @@ Creates and returns a Organization
 sub createOrganization {
   my ($organization) = @_;
 
-  my $rs = PatronStore::Schema::schema()->resultset('Organization');
+  my $rs = Hetula::Schema::schema()->resultset('Organization');
   return $rs->create($organization);
 }
 

@@ -23,7 +23,7 @@ sub doPasswordLogin {
     password => $args->{password} || '1234',
     organization => $args->{organization} || 'Vaara',
   };
-  PatronStore::Users::getUser({username => $login->{username}})->unblockLogin();
+  Hetula::Users::getUser({username => $login->{username}})->unblockLogin();
 
   my $tx = $t->ua->post('/api/v1/auth' => {Accept => '*/*'} => json => $login);
   $t->tx($tx); #Set the received transaction

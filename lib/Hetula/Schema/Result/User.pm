@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore::Schema::Result::User;
+package Hetula::Schema::Result::User;
 use base qw/DBIx::Class::Core/;
 
 use Carp;
@@ -23,9 +23,9 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->add_unique_constraint(['username']);
-__PACKAGE__->has_many(user_permissions => 'PatronStore::Schema::Result::UserPermission', 'userid');
+__PACKAGE__->has_many(user_permissions => 'Hetula::Schema::Result::UserPermission', 'userid');
 __PACKAGE__->many_to_many(permissions => 'user_permissions', 'permission');
-__PACKAGE__->has_many(user_organizations => 'PatronStore::Schema::Result::UserOrganization', 'userid');
+__PACKAGE__->has_many(user_organizations => 'Hetula::Schema::Result::UserOrganization', 'userid');
 __PACKAGE__->many_to_many(organizations => 'user_organizations', 'organization');
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
 ############################################
@@ -93,14 +93,14 @@ sub incrementFailedLoginCount {
 sub listPermissions {
   my ($self) = @_;
 
-  my $rs = PatronStore::Schema->schema->resultset('Permission');
+  my $rs = Hetula::Schema->schema->resultset('Permission');
   return $rs->search({'user_permissions.userid' => $self->id},
                      {join => 'user_permissions'})->all;
 }
 
 =head2 hasPermission
 
-@PARAM1 String, the permission name, preferably generated using PatronStore::getPermissionFromRoute()
+@PARAM1 String, the permission name, preferably generated using Hetula::getPermissionFromRoute()
 @RETURNS Permission if allowed
 
 =cut
@@ -108,7 +108,7 @@ sub listPermissions {
 sub hasPermission {
   my ($self, $permissionName) = @_;
 
-  my $rs = PatronStore::Schema->schema->resultset('Permission');
+  my $rs = Hetula::Schema->schema->resultset('Permission');
   return $rs->search({
       'user_permissions.userid' => $self->id,
       'name' => $permissionName
@@ -121,17 +121,17 @@ sub hasPermission {
 =head2 grantPermission
 
 @PARAM1 $self
-@PARAM2 permission.name or PatronStore::Schema::Result::Permission
+@PARAM2 permission.name or Hetula::Schema::Result::Permission
 
 =cut
 
 sub grantPermission {
   my ($self, $permission) = @_;
-  unless (blessed($permission) && $permission->isa('PatronStore::Schema::Result::Permission')) {
-    $permission = PatronStore::Permissions::getPermission({name => $permission});
+  unless (blessed($permission) && $permission->isa('Hetula::Schema::Result::Permission')) {
+    $permission = Hetula::Permissions::getPermission({name => $permission});
   }
 
-  my $rs = PatronStore::Schema->schema->resultset('UserPermission');
+  my $rs = Hetula::Schema->schema->resultset('UserPermission');
   $rs->update_or_create({userid => $self->id, permissionid => $permission->id});
   return $self;
 }
@@ -143,7 +143,7 @@ sub grantPermission {
 sub revokePermission {
   my ($self, $permission) = @_;
 
-  my $rs = PatronStore::Schema->schema->resultset('UserPermission');
+  my $rs = Hetula::Schema->schema->resultset('UserPermission');
   my $up = $rs->find({userid => $self->id, permissionid => $permission->id});
   $up->delete;
   return $self;
@@ -156,7 +156,7 @@ sub revokePermission {
 sub revokeAllPermissions {
   my ($self) = @_;
 
-  my $rs = PatronStore::Schema->schema->resultset('UserPermission');
+  my $rs = Hetula::Schema->schema->resultset('UserPermission');
   $rs->search({userid => $self->id})->delete;
   return $self;
 }
@@ -170,7 +170,7 @@ sub revokeAllPermissions {
 sub setPermissions {
   my ($self, $permissions) = @_;
 
-  my @new = PatronStore::Schema->schema->resultset('Permission')->search({name => {'-in' => $permissions}});
+  my @new = Hetula::Schema->schema->resultset('Permission')->search({name => {'-in' => $permissions}});
   $self->set_permissions(\@new);
   return $self;
 }
@@ -184,7 +184,7 @@ sub setPermissions {
 sub setOrganizations {
   my ($self, $organizations) = @_;
 
-  my @new = PatronStore::Schema->schema->resultset('Organization')->search({name => {'-in' => $organizations}});
+  my @new = Hetula::Schema->schema->resultset('Organization')->search({name => {'-in' => $organizations}});
   $self->set_organizations(\@new);
   return $self;
 }

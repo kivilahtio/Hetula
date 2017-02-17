@@ -25,7 +25,7 @@ my $t = t::lib::TestContext::set();
 
 use DateTime;
 use DateTime::Format::ISO8601;
-use PatronStore::Users;
+use Hetula::Users;
 
 
 subtest "Api V1 auth happy path", sub {
@@ -95,7 +95,7 @@ subtest "Api V1 max_failed_login_count", sub {
     ->content_like(qr!PS::Exception::Auth::AccountBlocked!, 'PS::Exception::Auth::AccountBlocked received');
   t::lib::U::debugResponse($t);
 
-  ok(PatronStore::Users::getUser({username => 'admin'})->unblockLogin(),
+  ok(Hetula::Users::getUser({username => 'admin'})->unblockLogin(),
                         'When the user is unblocked');
 
   $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
@@ -140,7 +140,7 @@ subtest "Api V1 no permission", sub {
 
 
   ok(1, 'Scenario: User with no permissions tries to do stuff');
-  $nakuadmin = PatronStore::Users::createUser({
+  $nakuadmin = Hetula::Users::createUser({
     username => 'naku-admin-taas',
     password => '1234-4321',
     realname => 'Naku nakuttaja',

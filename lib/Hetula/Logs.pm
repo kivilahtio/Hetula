@@ -1,10 +1,10 @@
 use 5.22.0;
 
-package PatronStore::Logs;
+package Hetula::Logs;
 
 =head1 NAME
 
-PatronStore::Logs
+Hetula::Logs
 
 =head2 SYNOPSIS
 
@@ -18,20 +18,20 @@ $Carp::Verbose = 'true'; #die with stack trace
 use Data::Dumper;
 use DateTime::Format::ISO8601;
 
-use PatronStore::Schema;
+use Hetula::Schema;
 
 use PS::Exception::Log::NotFound;
 
 =head2 getLog
 
-@RETURNS PatronStore::Schema::Result::Log
+@RETURNS Hetula::Schema::Result::Log
 @THROWS PS::Exception::Log::NotFound
 
 =cut
 
 sub getLog {
   my ($args) = @_;
-  my $rs = PatronStore::Schema::schema()->resultset('Log');
+  my $rs = Hetula::Schema::schema()->resultset('Log');
   my $o = $rs->find($args->{id});
   PS::Exception::Organization::NotFound->throw(error => 'No log found with params "'.Data::Dumper::Dumper($args).'"') unless $o;
   return $o;
@@ -39,14 +39,14 @@ sub getLog {
 
 =head2 searchLogs
 
-@RETURNS ARRAY of PatronStore::Schema::Result::Log
+@RETURNS ARRAY of Hetula::Schema::Result::Log
 @THROWS PS::Exception::Log::NotFound
 
 =cut
 
 sub searchLogs {
   my ($args) = @_;
-  my $schema = PatronStore::Schema::schema();
+  my $schema = Hetula::Schema::schema();
   my $rs = $schema->resultset('Log');
   my $dtf = $schema->storage->datetime_parser;
   my $argsx = {};
@@ -77,7 +77,7 @@ regarding the transaction that happened.
 
 sub createLog {
   my ($c) = @_;
-  my $l = PatronStore::Schema::schema()->resultset('Log')->create({
+  my $l = Hetula::Schema::schema()->resultset('Log')->create({
     userid         => $c->session->{userid} || ($c->stash->{logginginuser} ? $c->stash->{logginginuser}->id : undef),
     request        => $c->stash->{status}.' '.$c->req->method.' '.$c->req->url,
     description    => substr($c->res->text, 0, 50) || '',

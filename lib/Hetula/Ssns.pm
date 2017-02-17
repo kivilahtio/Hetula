@@ -1,10 +1,10 @@
 use 5.22.0;
 
-package PatronStore::Ssns;
+package Hetula::Ssns;
 
 =head1 NAME
 
-PatronStore::Ssns
+Hetula::Ssns
 
 =head2 SYNOPSIS
 
@@ -20,7 +20,7 @@ use Digest::SHA;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
-use PatronStore::Schema;
+use Hetula::Schema;
 
 use PS::Exception;
 use PS::Exception::Ssn::NotFound;
@@ -29,13 +29,13 @@ use PS::Exception::Ssn::Invalid;
 
 =head2 listSsns
 
-@RETURNS ARRAYRef of PatronStore::Schema::Result::Ssn-objects
+@RETURNS ARRAYRef of Hetula::Schema::Result::Ssn-objects
 @THROWS PS::Exception::Ssn::NotFound
 
 =cut
 
 sub listSsns {
-  my $rs = PatronStore::Schema::schema()->resultset('Ssn');
+  my $rs = Hetula::Schema::schema()->resultset('Ssn');
   my @ssns = $rs->search()->all();
   PS::Exception::Ssn::NotFound->throw(error => 'No ssns found') unless @ssns;
   return \@ssns;
@@ -44,14 +44,14 @@ sub listSsns {
 =head2 getSsn
 
 @PARAM1 HASHRef of ssn-keys
-@RETURNS PatronStore::Schema::Result::Ssn
+@RETURNS Hetula::Schema::Result::Ssn
 @THROWS PS::Exception::Ssn::NotFound
 
 =cut
 
 sub getSsn {
   my ($args) = @_;
-  my $rs = PatronStore::Schema::schema()->resultset('Ssn');
+  my $rs = Hetula::Schema::schema()->resultset('Ssn');
   my $ssn = $rs->find($args);
   PS::Exception::Ssn::NotFound->throw(error => 'No ssn found with params "'.Data::Dumper::Dumper($args).'"') unless $ssn;
   return $ssn;
@@ -60,8 +60,8 @@ sub getSsn {
 =head2 getSsnForOrganization
 
 @PARAM1 HASHRef of ssn-keys
-@PAARM2 PatronStore::Schema::Result::Organization
-@RETURNS PatronStore::Schema::Result::Ssn
+@PAARM2 Hetula::Schema::Result::Organization
+@RETURNS Hetula::Schema::Result::Ssn
 @THROWS PS::Exception::Ssn::NotFound
 
 =cut
@@ -72,7 +72,7 @@ sub getSsnForOrganization {
     'me.id' => $args->{id},
     'ssn_organizations.organizationid' => $organization->id,
   };
-  my $rs = PatronStore::Schema::schema()->resultset('Ssn');
+  my $rs = Hetula::Schema::schema()->resultset('Ssn');
   my $ssn = $rs->search($args, {join => 'ssn_organizations'})->single();
   PS::Exception::Ssn::NotFound->throw(error => 'No ssn found with params "'.Data::Dumper::Dumper($args).'"') unless $ssn;
   return $ssn;
@@ -80,14 +80,14 @@ sub getSsnForOrganization {
 
 =head2 getFullSsn
 
-@RETURNS PatronStore::Schema::Result::Ssn, with Organizations and Permissions prefetched
+@RETURNS Hetula::Schema::Result::Ssn, with Organizations and Permissions prefetched
 @THROWS PS::Exception::Ssn::NotFound
 
 =cut
 
 sub getFullSsn {
   my ($args, $organization) = @_;
-  my $rs = PatronStore::Schema::schema()->resultset('Ssn');
+  my $rs = Hetula::Schema::schema()->resultset('Ssn');
   my $ssn = $rs->find({id => $args->{id}}, {prefetch => {ssn_organization => 'organization'}});
   return $ssn;
 }
@@ -133,9 +133,9 @@ Adds a new organization which uses this ssn to an existing ssn,
 or creates a new one and adds the organization from where it was created.
 
 @PARAM1 HASHRef of Ssn-objects keys
-@PARAM2 PatronStore::Schema::Result::Organization
+@PARAM2 Hetula::Schema::Result::Organization
 @RETURNS ($ssn, $newSsnCreated)
-          $ssn PatronStore::Schema::Result::Ssn
+          $ssn Hetula::Schema::Result::Ssn
           $newSsnCreated, Boolean, true if new ssn created instead of appending
                                    organizations to an existing one
 
@@ -145,7 +145,7 @@ sub createSsn {
   my ($ssn, $organization) = @_;
   my ($organizations) = ($ssn->{organizations});
   delete $ssn->{organizations}; #We ignore the organizations here.
-  $organization = PatronStore::Organizations::getOrganization({name => $organization}) unless blessed($organization);
+  $organization = Hetula::Organizations::getOrganization({name => $organization}) unless blessed($organization);
 
   my $newSsnCreated;
   try {
@@ -156,7 +156,7 @@ sub createSsn {
   } catch {
 
     if ($_->isa('PS::Exception::Ssn::NotFound')) {
-      $ssn = PatronStore::Schema::schema()->resultset('Ssn')->create($ssn);
+      $ssn = Hetula::Schema::schema()->resultset('Ssn')->create($ssn);
       $ssn->add_to_organizations($organization);
       $newSsnCreated = 1;
       return if $ssn;
@@ -176,9 +176,9 @@ Deletes a organizations reference to a ssn or the ssn if
 no more references exists for it.
 
 @PARAM1 HASHRef of Ssn-objects keys
-@PARAM2 PatronStore::Schema::Result::Organization
+@PARAM2 Hetula::Schema::Result::Organization
 @RETURNS ($ssn, $ssnDeleted)
-          $ssn PatronStore::Schema::Result::Ssn
+          $ssn Hetula::Schema::Result::Ssn
           $ssnDeleted, Boolean, true if ssn deleted instead just of removing
                                    organizations from an existing one
 

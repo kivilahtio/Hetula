@@ -1,6 +1,6 @@
 use 5.22.0;
 
-package PatronStore::Schema::Result::Permission;
+package Hetula::Schema::Result::Permission;
 use base qw/DBIx::Class::Core/;
 
 use Carp;
@@ -20,7 +20,7 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->add_unique_constraint(['name']);
-__PACKAGE__->has_many(user_permissions => 'PatronStore::Schema::Result::UserPermission', 'permissionid');
+__PACKAGE__->has_many(user_permissions => 'Hetula::Schema::Result::UserPermission', 'permissionid');
 __PACKAGE__->many_to_many(users => 'user_permissions', 'user');
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
 ############################################
