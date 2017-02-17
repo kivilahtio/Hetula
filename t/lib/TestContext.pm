@@ -4,8 +4,6 @@ package t::lib::TestContext;
 
 use PatronStore::Users;
 
-use t::lib::TestDB;
-
 =head2 set
 
 Instantiates a test context.
@@ -17,7 +15,6 @@ Instantiates a test context.
 sub set {
   $ENV{MOJO_MODE} = "testing";
   my $t = Test::Mojo->new('PatronStore');
-  #die "Something wrong creating the test database" unless t::lib::TestDB::prepareTestDB();
   return $t;
 }
 

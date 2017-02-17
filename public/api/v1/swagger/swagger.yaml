@@ -3,12 +3,12 @@
 swagger: '2.0'
 info:
   version: '1.0.0'
-  title: Patron Store
+  title: Hetula
   description: Secure key-value store for confidential patron information
 basePath: /api/v1
 
 x-cors:
-  x-cors-access-control-allow-origin-list: PatronStore::Api::V1::corsOriginWhitelist()
+  x-cors-access-control-allow-origin-list: Hetula::Api::V1::corsOriginWhitelist()
   x-cors-access-control-allow-credentials: true
   x-cors-access-control-allow-methods: "*"
   x-cors-access-control-max-age: 3600
