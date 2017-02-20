@@ -164,7 +164,7 @@ sub _checkFailedLoginCount {
 
 sub _checkPassword {
   my ($user, $pass) = @_;
-  unless ($user && Digest::SHA::sha256($pass) eq $user->password ) {
+  unless ($user && Hetula::Users::_hashPassword($pass) eq $user->password ) {
     Hetula::Exception::Auth::Password->throw(error => 'Wrong password');
   }
 }

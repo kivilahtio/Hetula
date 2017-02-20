@@ -148,11 +148,12 @@ sub createPermissions {
   my ($self) = @_;
 
   my %permissions;
-  my $oldPermissions;
+  my $oldPermissions = [];
   try {
     $oldPermissions = Hetula::Permissions::listPermissions();
   } catch {
     return if (blessed($_) && $_->isa('Hetula::Exception::Permission::NotFound')); #There are no permissions so that is ok
+    return Hetula::Exception::rethrowDefaults($_);
   };
 
   my $apiV1Route = $self->routes->find('apiv1');

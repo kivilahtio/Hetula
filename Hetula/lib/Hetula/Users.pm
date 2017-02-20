@@ -1,4 +1,7 @@
 use 5.22.0;
+use utf8;
+binmode STDOUT, ":utf8";
+binmode STDERR, ":utf8";
 
 package Hetula::Users;
 
@@ -78,7 +81,7 @@ sub createUser {
   delete $user->{permissions};
   delete $user->{organizations};
 
-  _hashPassword($user);
+  $user->{password} = _hashPassword($user->{password});
   my $newUser = _createUser($user);
 
   if ($permissions) {
@@ -115,7 +118,7 @@ sub modUser {
   delete $user->{permissions};
   delete $user->{organizations};
 
-  _hashPassword($user);
+  $user->{password} = _hashPassword($user->{password});
   my $oldUser = _modUser($user);
 
   if ($permissions) {
@@ -153,13 +156,13 @@ sub deleteUser {
 
 =head2 _hashPassword
 
-@PARAM1 HASHRef of user attributes.
+@PARAM1 String, password
 
 =cut
 
 sub _hashPassword {
-  my ($user) = @_;
-  $user->{password} = Digest::SHA::sha256($user->{password});
+  my ($password) = @_;
+  return Digest::SHA::sha256_base64($password);
 }
 
 1;

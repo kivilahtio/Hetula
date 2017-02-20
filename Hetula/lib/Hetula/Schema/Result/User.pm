@@ -15,7 +15,7 @@ __PACKAGE__->table('user');
 __PACKAGE__->add_columns(
   id => { data_type => 'integer', is_auto_increment => 1 },
   username => { data_type => 'varchar', size => 30},
-  password => { data_type => 'varchar', size => 30},
+  password => { data_type => 'varchar', size => 64},
   realname => { data_type => 'varchar', size => 50},
   failed_login_count => { data_type => 'integer', default_value => 0 },
   createtime => { data_type => 'datetime', set_on_create => 1 },

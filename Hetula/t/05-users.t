@@ -29,7 +29,7 @@ use Hetula::Organizations;
 
 
 subtest "Api V1 CRUD users happy path", sub {
-  my ($body, $pertti) = @_;
+  my ($body, $pertti, $id) = @_;
   t::lib::Auth::doPasswordLogin($t);
 
 
@@ -51,11 +51,12 @@ subtest "Api V1 CRUD users happy path", sub {
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
                              'And the updatetime is in ISO8601');
-  is($body->{id}, 2,         'And the id is 2');
+  ok($body->{id} =~ /^\d+$/, 'And the id is set');
+  $id = $body->{id};
 
 
   ok(1, encode_utf8('When GETting Mr. Peräsmies'));
-  $t->get_ok('/api/v1/users/2')
+  $t->get_ok("/api/v1/users/$id")
     ->status_is(200, 'Then the user is returned');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
@@ -66,11 +67,11 @@ subtest "Api V1 CRUD users happy path", sub {
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
                              'And the updatetime is in ISO8601');
-  is($body->{id}, 2,         'And the id is 2');
+  is($body->{id}, $id,       'And the id is ok');
 
 
   ok(1, encode_utf8('When DELETEing Mr. Peräsmies'));
-  $t->delete_ok('/api/v1/users/2')
+  $t->delete_ok("/api/v1/users/$id")
     ->status_is(204, 'Then the User is deleted');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->text;
@@ -78,7 +79,7 @@ subtest "Api V1 CRUD users happy path", sub {
 
 
   ok(1, 'When GETting the DELETEd User');
-  $t->get_ok('/api/v1/users/2')
+  $t->get_ok("/api/v1/users/$id")
     ->status_is(404, 'Then the user is not found')
     ->content_like(qr!Hetula::Exception::User::NotFound!, 'And the content contains the correct Hetula::Exception::User::NotFound exception');
   t::lib::U::debugResponse($t);

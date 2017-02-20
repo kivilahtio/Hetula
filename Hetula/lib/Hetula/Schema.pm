@@ -99,7 +99,11 @@ sub _new_schema {
   my ( %encoding_attr, $encoding_query, $tz_query );
   my $tz = $ENV{TZ};
   if ( $db_driver eq 'mysql' ) {
-    %encoding_attr = ( mysql_enable_utf8 => 1 );
+    %encoding_attr = (
+      mysql_enable_utf8 => 1,
+      RaiseError => $raiseError,
+      PrintError => $printError,
+    );
     $encoding_query = "set NAMES 'utf8'";
     $tz_query = qq(SET time_zone = "$tz") if $tz;
   }
@@ -108,7 +112,11 @@ sub _new_schema {
     $tz_query = qq(SET TIME ZONE = "$tz") if $tz;
   }
   elsif ( $db_driver eq 'SQLite') {
-    %encoding_attr = ( sqlite_unicode => 1 );
+    %encoding_attr = (
+      sqlite_unicode => 1,
+      RaiseError => $raiseError,
+      PrintError => $printError,
+    );
   }
 
   my $schema = Hetula::Schema->connect(
@@ -117,8 +125,6 @@ sub _new_schema {
       user => $db_user,
       password => $db_passwd,
       %encoding_attr,
-      RaiseError => $raiseError,
-      PrintError => $printError,
       unsafe => 1,
       quote_names => 1,
       on_connect_do => [
