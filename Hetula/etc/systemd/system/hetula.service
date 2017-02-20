@@ -4,7 +4,7 @@ Description=Secure Patron storage
 [Service]
 Type=simple
 User=hetula
-ExecStart=/home/hetula/Hetula/script/hetula daemon -m development -l http://*:8080
+ExecStart=/opt/Hetula/Hetula/script/hetula daemon -m development -l http://*:3000
 
 RestartSec=5s
 Restart=always

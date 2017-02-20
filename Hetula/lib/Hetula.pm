@@ -148,9 +148,9 @@ sub createPermissions {
   my ($self) = @_;
 
   my %permissions;
-  my @oldPermissions;
+  my $oldPermissions;
   try {
-    @oldPermissions = Hetula::Permissions::listPermissions();
+    $oldPermissions = Hetula::Permissions::listPermissions();
   } catch {
     return if (blessed($_) && $_->isa('Hetula::Exception::Permission::NotFound')); #There are no permissions so that is ok
   };
@@ -166,16 +166,16 @@ sub createPermissions {
   ## What is left of the two data groups,
   ##    are permissions which are missing and needed,
   ##    or present and not needed.
-  for (my $i=0 ; $i<scalar(@oldPermissions) ; $i++) {
-    my $oldPerm = $oldPermissions[$i];
+  for (my $i=0 ; $i<scalar(@$oldPermissions) ; $i++) {
+    my $oldPerm = $oldPermissions->[$i];
     if ($permissions{$oldPerm->name}) {
       #It exists, no problem
-      $oldPermissions[$i] = undef;
+      $oldPermissions->[$i] = undef;
       delete $permissions{$oldPerm->name};
     }
   }
   ## These old permissions were not needed, so delete them
-  foreach my $oldPerm (@oldPermissions) {
+  foreach my $oldPerm (@$oldPermissions) {
     $oldPerm->delete;
   }
   ## These new permissions are not present, so add them and grant them to the admin
