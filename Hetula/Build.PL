@@ -42,7 +42,7 @@ sub ACTION_install {
 sub ACTION_test {
   my $self = shift;
 
-  $self->do_system( '/usr/local/bin/prove -Ilib t' );
+  $self->do_system( '/usr/bin/prove -Ilib t' );
 }
 
 sub ACTION_commit {
