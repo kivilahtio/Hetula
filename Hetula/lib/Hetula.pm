@@ -50,7 +50,7 @@ sub startup {
   if ($mode eq 'testing') {
     $config = $self->plugin(Config => {file => 't/config/hetula.conf'});
   }
-  elsif (-e '/etc/hetula/Hetula.conf') {
+  elsif (-e '/etc/hetula/hetula.conf') {
     $config = $self->plugin(Config => {file => '/etc/hetula/hetula.conf'});
   }
   else {
