@@ -176,7 +176,7 @@ sub createPermissions {
   }
   ## These old permissions were not needed, so delete them
   foreach my $oldPerm (@$oldPermissions) {
-    $oldPerm->delete;
+    $oldPerm->delete if $oldPerm;
   }
   ## These new permissions are not present, so add them and grant them to the admin
   my $user = Hetula::Users::getUser({username => 'admin'});
