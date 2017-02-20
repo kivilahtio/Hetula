@@ -13,8 +13,9 @@ use Scalar::Util qw(blessed);
 __PACKAGE__->load_components(qw( TimeStamp Core ));
 __PACKAGE__->table('ssn');
 __PACKAGE__->add_columns(
-  id => { data_type => 'integer', is_auto_increment => 1 },
-  ssn => { data_type => 'varchar', size => 30},
+  id => { data_type => 'integer',  is_auto_increment => 1 },
+  ssn => { data_type => 'varchar', size => 30 },
+  notes => { data_type => 'text',  is_nullable => 1 },
   createtime => { data_type => 'datetime', set_on_create => 1 },
   updatetime => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
@@ -40,6 +41,7 @@ sub swaggerize {
   my $swag = $self->{_column_data};
   $swag->{createtime} =~ s/ /T/;
   $swag->{updatetime} =~ s/ /T/;
+  delete $swag->{notes} unless $swag->{notes};
 
   my @organizations = map {$_->toString} sort {$a->name cmp $b->name} $self->organizations;
   $swag->{organizations} = \@organizations;

@@ -82,11 +82,15 @@ definitions:
         type: integer
       ssn:
         type: string
+      notes:
+        description: Free text about anything related to the owner of this SSN.
+        type: string
       organizations:
         type: array
         items:
           description: The organization.name
           type: string
+
 
   ssnBatchReport:
     type: object
@@ -102,6 +106,7 @@ definitions:
         type: string
       ssn:
         $ref: '#/definitions/ssn'
+
 
   log:
     type: object

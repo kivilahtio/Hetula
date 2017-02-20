@@ -81,11 +81,12 @@ subtest "Api V1 CRUD ssns happy path", sub {
 
 
   ok(1, 'When POSTing a new ssn "05091828+478H"');
-  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '05091828+478H'})
+  $t->post_ok('/api/v1/ssns' => {Accept => '*/*'} => json => {ssn => '05091828+478H', notes => 'Ällikällä lyöty'})
     ->status_is(201, 'Then the ssn is created');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   is($body->{ssn}, '05091828+478H', 'And the ssn is "05091828+478H"');
+  is($body->{notes}, 'Ällikällä lyöty', encode_utf8('And the notes is "Ällikällä lyöty"'));
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
