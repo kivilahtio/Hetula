@@ -168,6 +168,92 @@ definitions:
 
 ### ### PATHS ### ###
 paths:
+  /oauth/token:
+    post:
+      summary: OAuth2.0 Token Endpoint
+      x-mojo-to: OAuth2#token
+      parameters:
+        - name: Authorization
+          in: header
+          type: string
+          format: password
+          description: Basic + the client_name and client_secret concatenated together, separated by ':'. Eg. Authorization: Basic KohaFi:$5$Sdgk7UxocfoTbkiY$w1tsJYwyJD4JD8U3w9UM8e7OTOk9oK1oUXb9oBzutM5
+          required: true
+        - name: grant_type
+          in: formData
+          type: string
+          description: OAuth2 grant type to use. Use 'password'
+          required: true
+        - name: username
+          in: formData
+          type: string
+          description: OAuth2 bearer username. MANDATORY if using grant_type=password
+          required: false
+        - name: password
+          in: formData
+          type: string
+          format: password
+          description: OAuth2 bearer password. MANDATORY if using grant_type=password
+          required: false
+      responses:
+        200:
+          description: AuthZ succeeded
+          headers:
+            Cache-Control:
+              description: prevent caching!
+              type: string
+              pattern: no-store
+            Pragma:
+              description: prevent caching!
+              type: string
+              pattern: no-cache
+          schema:
+            type: object
+            description: Response with access tokens
+            properties:
+              access_token:
+                description: User session token
+                type: string
+              token_type:
+                description: This is always 'Bearer'
+                type: string
+                enum:
+                  - Bearer
+              expires_in:
+                description: In how many seconds does this token expire
+                type: integer
+              refresh_token:
+                description: Use this token to refresh the expired access_token
+                type: string
+                format: password
+        400:
+          description: AuthZ failed
+          headers:
+            Cache-Control:
+              description: prevent caching!
+              type: string
+              pattern: no-store
+            Pragma:
+              description: prevent caching!
+              type: string
+              pattern: no-cache
+          schema:
+            type: object
+            description: Error description
+            required:
+              - error
+            properties:
+              error:
+                description: A single ASCII error code
+                type: string
+              error_description:
+                description: Human-readable ASCII text providing additional information, used to assist the client developer in understanding the error that occurred.
+                type: string
+              error_uri:
+                description: A URI identifying a human-readable web page with information about the error
+                type: string
+
+
   /auth:
     post:
       summary: Authenticate
@@ -487,4 +573,15 @@ paths:
           description: User deleted
 ### END OF ### PATHS ### ###
 
+security:
+  - oauth2password: []
+
+securityDefinitions:
+  oauth2password:
+    description: Resource Owner Password Credentials Grant
+    type: oauth2
+    tokenUrl: /api/v1/oauth/token
+    flow: password
+    name: Basic
+    in: header
 

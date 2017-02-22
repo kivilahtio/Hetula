@@ -27,6 +27,7 @@ __PACKAGE__->has_many(user_permissions => 'Hetula::Schema::Result::UserPermissio
 __PACKAGE__->many_to_many(permissions => 'user_permissions', 'permission');
 __PACKAGE__->has_many(user_organizations => 'Hetula::Schema::Result::UserOrganization', 'userid');
 __PACKAGE__->many_to_many(organizations => 'user_organizations', 'organization');
+__PACKAGE__->might_have(apiclient => 'Hetula::Schema::Result::ApiCredential', 'userid');
 ## ## ##   DONE WITH DBIx::Schema   ## ## ##
 ############################################
 
@@ -177,7 +178,8 @@ sub setPermissions {
 
 =head2 setOrganizations
 
-@PARAM1 ARRAYRef of organization.name
+@PARAM1 $self
+@PARAM2 ARRAYRef of organization.name
 
 =cut
 
@@ -186,6 +188,21 @@ sub setOrganizations {
 
   my @new = Hetula::Schema->schema->resultset('Organization')->search({name => {'-in' => $organizations}});
   $self->set_organizations(\@new);
+  return $self;
+}
+
+=head2 setApiClient
+
+@PARAM1 $self
+@PARAM2 HASHRef of ApiClient-attributes
+@RETURNS $self
+
+=cut
+
+sub setApiClient {
+  my ($self, $apiClient) = @_;
+
+  $self->set_apiclient($apiClient);
   return $self;
 }
 

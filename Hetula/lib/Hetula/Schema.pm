@@ -108,6 +108,11 @@ sub _new_schema {
     $tz_query = qq(SET time_zone = "$tz") if $tz;
   }
   elsif ( $db_driver eq 'Pg' ) {
+    %encoding_attr = (
+      pg_enable_utf8 => 1,
+      RaiseError => $raiseError,
+      PrintError => $printError,
+    );
     $encoding_query = "set client_encoding = 'UTF8';";
     $tz_query = qq(SET TIME ZONE = "$tz") if $tz;
   }

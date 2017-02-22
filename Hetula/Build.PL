@@ -68,6 +68,7 @@ $class->new(
     'DateTime::Format::ISO8601'         => undef,
     'DBIx::Class'                       => undef,
     'DBIx::Class::TimeStamp'            => undef,
+    'DBIx::Class::InflateColumn::Object::Enum' => undef,
     'Digest::SHA'                       => undef,
     'Mojolicious'                       => undef,
     'Mojolicious::Plugin::OpenAPI'      => undef,
