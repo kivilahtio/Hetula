@@ -30,7 +30,7 @@ use Hetula::Users;
 
 subtest "OAuth2.0 Resource Owner Password Credentials Grant happy path", sub {
   my ($admin) = @_;
-  my $apiclient = {
+  my $apicredential = {
     client_id =>     'KohaFi',
     client_secret => '$5$MS6wtyvMRQScL$rKmJ5LPlwvdF9v/dlhofMy5z6VI7i7npEBqI5GX4372',
     client_type =>   'confidential',
@@ -42,8 +42,8 @@ subtest "OAuth2.0 Resource Owner Password Credentials Grant happy path", sub {
   subtest "Register API client to server", sub {
     $admin = Hetula::Users::getUser({username => 'admin'});
     ok($admin, 'Given the admin user');
-    ok($admin->setApiClient($apiclient),
-           'And API Client configuration');
+    ok($admin->setApiCredential($apicredential),
+           'And API Credential configuration');
   };
 
   subtest "Register API server to client", sub {

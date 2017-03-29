@@ -43,7 +43,7 @@ subtest "Api V1 verify default route permissions", sub {
     [qr/^\d+$/, 'auth-post',    undef, undef],
     [qr/^\d+$/, 'logs-get',     undef, undef],
     [],[],[],[],[],[],[],[],[],[],[],[],[],[],
-    [qr/^\d+$/, 'users-put',    undef, undef],
+    [],[],
   ];
   t::lib::U::testPermissions($expected, $permissions);
 };

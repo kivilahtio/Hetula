@@ -176,8 +176,8 @@ paths:
         - name: Authorization
           in: header
           type: string
+          description: "Basic + the client_name and client_secret concatenated together, separated by ':'. Eg. \"Authorization: Basic KohaFi:$5$Sdgk7UxocfoTbkiY$w1tsJYwyJD4JD8U3w9UM8e7OTOk9oK1oUXb9oBzutM5\""
           format: password
-          description: Basic + the client_name and client_secret concatenated together, separated by ':'. Eg. Authorization: Basic KohaFi:$5$Sdgk7UxocfoTbkiY$w1tsJYwyJD4JD8U3w9UM8e7OTOk9oK1oUXb9oBzutM5
           required: true
         - name: grant_type
           in: formData
@@ -582,6 +582,7 @@ securityDefinitions:
     type: oauth2
     tokenUrl: /api/v1/oauth/token
     flow: password
-    name: Basic
-    in: header
+    scopes:
+      get:ssn:  get a ssn
+      post:ssn: add a new ssn
 

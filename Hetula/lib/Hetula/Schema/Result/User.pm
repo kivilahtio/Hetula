@@ -191,18 +191,18 @@ sub setOrganizations {
   return $self;
 }
 
-=head2 setApiClient
+=head2 setApiCredential
 
 @PARAM1 $self
-@PARAM2 HASHRef of ApiClient-attributes
+@PARAM2 HASHRef of ApiCredential-attributes
 @RETURNS $self
 
 =cut
 
-sub setApiClient {
-  my ($self, $apiClient) = @_;
+sub setApiCredential {
+  my ($self, $apiCredential) = @_;
 
-  $self->set_apiclient($apiClient);
+  $self->set_apicredential($apiCredential);
   return $self;
 }
 
