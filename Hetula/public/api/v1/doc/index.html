@@ -98,7 +98,7 @@
     var timer = setInterval(pollForXCSRFToken, 1000);
     function pollForXCSRFToken() {
       var headersText = $("#default_post_auth .response_headers pre").html();
-      if(!headersText.length) {
+      if(!(headersText) || !(headersText.length)) {
         return null;
       }
       var regexped = /"x-csrf-token": "(.+?)"/.exec(headersText);

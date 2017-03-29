@@ -37,6 +37,7 @@ Cast this into something the OpenAPI-plugin can validate as a proper Swagger2-re
 sub swaggerize {
   my ($self, $op_spec) = @_;
 
+  $self->{_column_data}->{id} += 0;
   $self->{_column_data}->{createtime} =~ s/ /T/;
   $self->{_column_data}->{updatetime} =~ s/ /T/;
   return $self->{_column_data};

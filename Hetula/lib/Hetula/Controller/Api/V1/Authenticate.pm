@@ -238,8 +238,6 @@ sub _createSession {
   $c->session(userid => $user->id);
   $c->session(organizationid => $organization->id);
   $c->session('HttpOnly');
-#  $c->session('expiration' => $c->config->{'session_expiration'}+3600);
-#  warn $c->config->{'session_expiration'};
   return $c;
 }
 

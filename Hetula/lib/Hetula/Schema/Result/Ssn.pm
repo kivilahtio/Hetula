@@ -39,6 +39,7 @@ sub swaggerize {
   my ($self, $op_spec) = @_;
 
   my $swag = $self->{_column_data};
+  $swag->{id} += 0;
   $swag->{createtime} =~ s/ /T/;
   $swag->{updatetime} =~ s/ /T/;
   delete $swag->{notes} unless $swag->{notes};

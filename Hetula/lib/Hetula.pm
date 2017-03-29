@@ -59,7 +59,7 @@ sub startup {
   checkConfig($self, $config);
 
   $self->sessions->cookie_name('PaStor');
-#  $self->sessions->default_expiration($config->{session_expiration});
+  $self->sessions->default_expiration($config->{session_expiration});
   $self->secrets([$config->{secret}]);
 
   Hetula::Schema::SetConfig($config);

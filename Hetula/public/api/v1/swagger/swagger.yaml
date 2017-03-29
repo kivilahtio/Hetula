@@ -100,7 +100,7 @@ definitions:
       - ssn
     properties:
       status:
-        description: The HTTP status equivalent to what happened to this given ssn. See POST /api/v1/ssns for what the status codes mean.
+        description: The HTTP status equivalent to what happened to this given ssn. See HTTP response codes for POST /api/v1/ssns for what the status codes mean.
         type: integer
       error:
         description: Textual representation of any errors. If errors are present, the ssn only contains the ssn.ssn, not id.
