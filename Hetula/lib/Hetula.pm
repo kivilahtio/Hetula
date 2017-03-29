@@ -59,7 +59,7 @@ sub startup {
   checkConfig($self, $config);
 
   $self->sessions->cookie_name('PaStor');
-  $self->sessions->default_expiration($config->{session_expiration});
+#  $self->sessions->default_expiration($config->{session_expiration});
   $self->secrets([$config->{secret}]);
 
   Hetula::Schema::SetConfig($config);
@@ -88,6 +88,12 @@ sub startup {
     my $path = $c->req->url->path;
     Hetula::Logs::createLog($c) if ($path =~ m!^/api/v1! && $path !~ m!^/api/v1/doc!);
   });
+
+  #DB connection has been cached for the server process, and the same cache is copied for the forked workers.
+  #Prevent sharing the same connection and instead let workers get their own DB connections.
+  #When testing, we use a in-memory DB accessible only by the DB connection created by Hetula::Schema::DefaultDB::createDB();
+  #We cannot lose this connection or we lose the test DB.
+  Hetula::Schema::flushConnections() unless ($mode eq 'testing');
 }
 
 =head2 checkTimezone

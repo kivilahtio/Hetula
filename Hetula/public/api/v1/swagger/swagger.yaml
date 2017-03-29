@@ -6,6 +6,7 @@ info:
   title: Hetula
   description: Secure key-value store for confidential patron information
 basePath: /api/v1
+schemes: ['https', 'http']
 
 x-cors:
   x-cors-access-control-allow-origin-list: Hetula::Api::V1::corsOriginWhitelist()
