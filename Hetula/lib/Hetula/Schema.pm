@@ -7,6 +7,8 @@ use Carp;
 use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
 use English;
+use Scalar::Util qw(blessed);
+use Try::Tiny;
 
 __PACKAGE__->load_namespaces();
 
@@ -205,7 +207,15 @@ Removes all active DB connections from caches
 
 sub flushConnections {
   foreach my $pid (keys %$database) {
-    $database->{$pid}->disconnect();
+    if ($database->{$pid}) {
+      if ($database->{$pid}->{schema} && blessed($database->{$pid}->{schema})) {
+        $l->debug("\$pid=$pid, \$schema=".$database->{$pid}->{schema});
+        $database->{$pid}->{schema}->storage->disconnect();
+      }
+      else {
+        $l->error("Unknown database connection object \$pid=$pid:\n".$l->flatten($database->{$pid}->{schema}));
+      }
+    }
   }
   $database = {};
 }

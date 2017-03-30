@@ -51,7 +51,7 @@ sub startup {
 
   my $config = $self->getConfig();
   $self->log( MojoX::Log::Log4perl->new( $self->getLog4perlConfig() ) );
-#  $self->log->info('Initialized MojoX::Log::Log4perl');
+  $self->log->info('Initialized MojoX::Log::Log4perl');
 
   $self->sessions->cookie_name('PaStor');
   $self->sessions->default_expiration($config->{session_expiration});

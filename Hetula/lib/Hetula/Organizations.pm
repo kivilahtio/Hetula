@@ -15,11 +15,14 @@ Manage this class of objects
 use Carp;
 use autodie;
 $Carp::Verbose = 'true'; #die with stack trace
-use Data::Dumper;
 
 use Hetula::Schema;
 
 use Hetula::Exception::Organization::NotFound;
+
+
+use Hetula::Logger;
+my $l = bless({}, 'Hetula::Logger');
 
 =head2 listOrganizations
 
@@ -46,7 +49,7 @@ sub getOrganization {
   my ($args) = @_;
   my $rs = Hetula::Schema::schema()->resultset('Organization');
   my $o = $rs->find($args);
-  Hetula::Exception::Organization::NotFound->throw(error => 'No organization found with params "'.Data::Dumper::Dumper($args).'"') unless $o;
+  Hetula::Exception::Organization::NotFound->throw(error => 'No organization found with params "'.$l->flatten($args).'"') unless $o;
   return $o;
 }
 
