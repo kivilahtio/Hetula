@@ -34,6 +34,13 @@ sub ACTION_install {
   else {
     $self->log_info( "'/etc/hetula/hetula.conf' exists\n" );
   }
+  unless (-e '/etc/hetula/log4perl.conf') {
+    $self->log_info( "Creating '/etc/hetula/log4perl.conf'\n" );
+    File::Copy::copy('config/log4perl.conf', '/etc/hetula/log4perl.conf');
+  }
+  else {
+    $self->log_info( "'/etc/hetula/log4perl.conf' exists\n" );
+  }
   $self->log_info( "Enabling 'hetula'-service\n" );
   $self->do_system( '/bin/systemctl daemon-reload' );
   $self->do_system( '/bin/systemctl enable hetula' );

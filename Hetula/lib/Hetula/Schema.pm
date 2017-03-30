@@ -10,7 +10,8 @@ use English;
 
 __PACKAGE__->load_namespaces();
 
-
+use Hetula::Logger;
+my $l = bless({}, 'Hetula::Logger');
 
 =head1 NAME
 
@@ -44,7 +45,7 @@ Manages DBIx::Class DB access
 # with Koha; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-use vars qw($database);
+our $database = {};
 our $dbconfig;
 
 =head2 SetConfig
@@ -149,7 +150,8 @@ sub _new_schema {
 
 =head2 schema
 
-  $schema = $database->schema;
+  $schema = Hetula::Schema->schema;
+
 Returns a database handle connected to the Koha database for the
 current context. If no connection has yet been made, this method
 creates one, and connects to the database.
@@ -161,7 +163,7 @@ possibly C<&set_schema>.
 =cut
 
 sub schema {
-  my $self = shift;
+  my $class = shift;
   my $params = shift;
 
   unless ( $params->{new} ) {
@@ -172,6 +174,29 @@ sub schema {
   return $database->{$PID}->{schema};
 }
 
+=head2 keepaliveConnection
+
+    my $schema = Hetula::Schema->keepaliveConnection();
+
+Checks if the connection is alive, if not, reconnects.
+This is to circumvent a bug in DBIx::Class where the auto reconnect feature is broken.
+https://github.com/dbsrgits/dbix-class/commit/729656c504e5c "Ensure the $storage state reflects the current connection state closely"
+
+=cut
+
+sub keepaliveConnection {
+  my $class = shift;
+
+  my $schema = $class->schema();
+  my $ensuredConnection = $schema->storage()->ensure_connected();
+  $l->debug("\$ensuredConnection=$ensuredConnection");
+  unless ($ensuredConnection) {
+    $class->flushConnections();
+    $schema = $class->schema();
+  }
+  return $schema;
+}
+
 =head2 flushConnections
 
 Removes all active DB connections from caches
@@ -179,7 +204,10 @@ Removes all active DB connections from caches
 =cut
 
 sub flushConnections {
-  $database = undef;
+  foreach my $pid (keys %$database) {
+    $database->{$pid}->disconnect();
+  }
+  $database = {};
 }
 
 1;

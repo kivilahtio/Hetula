@@ -17,6 +17,9 @@ use Mojo::IOLoop;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
+use Log::Log4perl;
+use MojoX::Log::Log4perl;
+
 use Hetula::Schema;
 use Hetula::Schema::DefaultDB;
 use Hetula::Permissions;
@@ -46,17 +49,9 @@ sub startup {
   # Documentation browser under "/perldoc"
   $self->plugin('PODRenderer');
 
-  my $config;
-  if ($mode eq 'testing') {
-    $config = $self->plugin(Config => {file => 't/config/hetula.conf'});
-  }
-  elsif (-e '/etc/hetula/hetula.conf') {
-    $config = $self->plugin(Config => {file => '/etc/hetula/hetula.conf'});
-  }
-  else {
-    $config = $self->plugin(Config => {file => 'config/hetula.conf'});
-  }
-  checkConfig($self, $config);
+  my $config = $self->getConfig();
+  $self->log( MojoX::Log::Log4perl->new( $self->getLog4perlConfig() ) );
+#  $self->log->info('Initialized MojoX::Log::Log4perl');
 
   $self->sessions->cookie_name('PaStor');
   $self->sessions->default_expiration($config->{session_expiration});
@@ -89,6 +84,13 @@ sub startup {
     Hetula::Logs::createLog($c) if ($path =~ m!^/api/v1! && $path !~ m!^/api/v1/doc!);
   });
 
+  ##Fix a bug in DBIx::Class version 0.082840 where 'MySQL server has gone away at...' regardless of auto reconnect parameters.
+  $self->hook(around_dispatch => sub {
+    my ($next, $c) = @_;
+    Hetula::Schema->keepaliveConnection();
+    $next->();
+  });
+
   #DB connection has been cached for the server process, and the same cache is copied for the forked workers.
   #Prevent sharing the same connection and instead let workers get their own DB connections.
   #When testing, we use a in-memory DB accessible only by the DB connection created by Hetula::Schema::DefaultDB::createDB();
@@ -115,13 +117,69 @@ sub checkTimezone {
   }
 }
 
-=head2 checkConfig
+=head2 getLogger
+
+=cut
+
+sub getLogger {
+  my ($self) = @_;
+  my $config;
+  if ($self->mode eq 'testing') {
+    $config = $self->plugin(Config => {file => 't/config/log4perl.conf'});
+  }
+  elsif (-e '/etc/hetula/hetula.conf') {
+    $config = $self->plugin(Config => {file => '/etc/hetula/log4perl.conf'});
+  }
+  else {
+    $config = $self->plugin(Config => {file => 'config/log4perl.conf'});
+  }
+  
+}
+
+=head2 getLog4perlConfig
+
+=cut
+
+sub getLog4perlConfig {
+  my ($self) = @_;
+  my $config;
+  if ($self->mode eq 'testing') {
+    return 'config/log4perl.conf';
+  }
+  elsif (-e '/etc/hetula/hetula.conf') {
+    return '/etc/hetula/log4perl.conf';
+  }
+  else {
+    return 'config/log4perl.conf';
+  }
+}
+
+=head2 getConfig
+
+=cut
+
+sub getConfig {
+  my ($self) = @_;
+  my $config;
+  if ($self->mode eq 'testing') {
+    $config = $self->plugin(Config => {file => 't/config/hetula.conf'});
+  }
+  elsif (-e '/etc/hetula/hetula.conf') {
+    $config = $self->plugin(Config => {file => '/etc/hetula/hetula.conf'});
+  }
+  else {
+    $config = $self->plugin(Config => {file => 'config/hetula.conf'});
+  }
+  return validateConfig($self, $config);
+}
+
+=head2 validateConfig
 
 Check that configuration options are properly given
 
 =cut
 
-sub checkConfig {
+sub validateConfig {
   my ($self, $config) = (@_);
 
   my $prologue = "Configuration parameter ";
@@ -129,6 +187,7 @@ sub checkConfig {
   foreach my $mc (@mandatoryConfig) {
     die "$prologue '$mc' is not defined" unless ($config->{$mc});
   }
+  return $config;
 }
 
 =head2 createPermissions
