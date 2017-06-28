@@ -66,7 +66,7 @@ sub run {
     C4::Installer::reinstall($verbose) if $reinstall;
 
     my (@tests, $tests);
-    push(@tests, @{_getAllTests()})         if $testAll;
+    push(@tests, @{_getAllTests()});
 
     print "Selected the following test files:\n".join("\n",@tests)."\n" if $verbose;
 
