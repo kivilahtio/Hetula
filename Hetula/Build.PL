@@ -1,6 +1,8 @@
 use 5.22.0;
 use Module::Build;
 
+use Cwd;
+
 my $class = Module::Build->subclass(
   class => "Module::Build::Custom",
   code => <<'SUBCLASS' );
@@ -41,6 +43,12 @@ sub ACTION_install {
   else {
     $self->log_info( "'/etc/hetula/log4perl.conf' exists\n" );
   }
+
+  my $HETULA_HOME = Cwd::getcwd();
+  $self->log_info( "Setting HETULA_HOME=$HETULA_HOME environment variable" );
+  my $cmd = "(grep -P '^HETULA_HOME' /etc/environment && sed -i 's!^HETULA_HOME.*\$!HETULA_HOME=$HETULA_HOME!' /etc/environment) || echo 'HETULA_HOME=$HETULA_HOME' >> /etc/environment";
+  $self->do_system( $cmd );
+
   $self->log_info( "Enabling 'hetula'-service\n" );
   $self->do_system( '/bin/systemctl daemon-reload' );
   $self->do_system( '/bin/systemctl enable hetula' );
