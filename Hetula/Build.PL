@@ -11,6 +11,8 @@ sub ACTION_install {
   my $self = shift;
   $self->SUPER::ACTION_install;
 
+  my $systemdServiceFile = '/etc/systemd/system/hetula.service';
+
   ###Add the hetula-user###
   my $userExists = `/bin/grep -P 'hetula' /etc/passwd`;
   unless ($userExists) {
@@ -24,7 +26,7 @@ sub ACTION_install {
   ###Install systemd service and system config file
   require File::Copy;
   $self->log_info( "Deploying the 'hetula'-service\n" );
-  File::Copy::copy('etc/systemd/system/hetula.service', '/etc/systemd/system/hetula.service');
+  File::Copy::copy('etc/systemd/system/hetula.service', $systemdServiceFile);
   unless (-d '/etc/hetula') {
     $self->log_info( "Creating '/etc/hetula'\n" );
     mkdir '/etc/hetula';
@@ -47,6 +49,8 @@ sub ACTION_install {
   my $HETULA_HOME = Cwd::getcwd();
   $self->log_info( "Setting HETULA_HOME=$HETULA_HOME environment variable" );
   my $cmd = "(grep -P '^HETULA_HOME' /etc/environment && sed -i 's!^HETULA_HOME.*\$!HETULA_HOME=$HETULA_HOME!' /etc/environment) || echo 'HETULA_HOME=$HETULA_HOME' >> /etc/environment";
+  $self->do_system( $cmd );
+  $cmd = "sed -i 's!^ExecStart=/.*/script/hetula!ExecStart=$HETULA_HOME/script/hetula!' $systemdServiceFile";
   $self->do_system( $cmd );
 
   $self->log_info( "Enabling 'hetula'-service\n" );
