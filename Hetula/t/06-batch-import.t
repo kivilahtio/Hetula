@@ -109,7 +109,7 @@ subtest "Api V1 Batch import a big batch of ssns", sub {
   is(ref($body), 'ARRAY', 'Then the result is an array');
   is(scalar(@$body), 1000,   'And the result has 1000 reports');
   $runtime[2] = $runtime[1]-$runtime[0];
-  ok($runtime[2] < 10, 'And the runtime was reasonable');
+  ok($runtime[2] < 30, 'And the runtime was reasonable'); #Adjusted for clover tests
 
   };
   ok(0, $@) if $@;
