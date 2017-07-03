@@ -94,6 +94,7 @@ $class->new(
     'Mojolicious::Plugin::OpenAPI'      => '> 0.01',
     'MojoX::Log::Log4perl'              => '> 0.01',
     'SQL::Translator'                   => '> 0.01',
+    'TAP::Harness::JUnit'               => '> 0.01',
     'Test::MockModule'                  => '> 0.01',
     'Time::HiRes'                       => '> 0.01',
     'Try::Tiny'                         => '> 0.01',

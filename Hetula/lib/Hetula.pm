@@ -115,13 +115,12 @@ sub validateEnvironment {
   push(@sb, "Available environment variables:");
   push(@sb, "TZ=".($ENV{TZ} // '').", sets the time zone. Defaults to 'date +%z'");
   push(@sb, "HETULA_HOME=".($ENV{HETULA_HOME} // '').", where the Hetula source code is located");
-  print join("\n", @sb);
 
   if (! $ENV{HETULA_HOME}) {
-    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_HOME is not defined! It must be the directory of Hetula source code");
+    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_HOME is not defined! It must be the directory of Hetula source code\n".join("\n", @sb));
   }
   elsif(! -r $ENV{HETULA_HOME}) {
-    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_HOME is not readable by the current user ".getpwuid($<)."!");
+    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_HOME is not readable by the current user ".getpwuid($<)."!\n".join("\n", @sb));
   }
 }
 

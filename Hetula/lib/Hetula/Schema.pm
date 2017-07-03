@@ -94,8 +94,8 @@ sub _new_schema {
 
   my $db_driver = $dbconfig->{db_driver};
   my $db_name   = $dbconfig->{db_name};
-  my $db_host   = $dbconfig->{db_host};
-  my $db_port   = $dbconfig->{db_port};
+  my $db_host   = $dbconfig->{db_host} // ''; #In mem SQLite doesn't need host or port
+  my $db_port   = $dbconfig->{db_port} // ''; #
   my $db_user   = $dbconfig->{db_user};
   my $db_passwd = $dbconfig->{db_pass};
   my $db_socket = $dbconfig->{db_socket};

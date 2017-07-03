@@ -77,6 +77,7 @@ sub run {
         testFiles  => \@tests,
         dryRun     => $dryRun,
         verbose    => $verbose,
+        lib        => [$ENV{HETULA_HOME}.'/lib', $ENV{HETULA_HOME}],
     );
     $ksTestHarness->run();
 }

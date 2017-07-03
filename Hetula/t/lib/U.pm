@@ -94,7 +94,9 @@ sub testArrayToHash {
         if (ref($eVal) eq 'Regexp') {
           $fault = 1 unless ($rVal =~ $eVal);
         } else {
-          $fault = 1 unless ($rVal eq $eVal);
+          unless ($rVal // '' eq $eVal // '') {
+            $fault = 1;
+          }
         }
       }
 

@@ -216,35 +216,36 @@ sub _hashPassword {
 =cut
 
 my @ssnValidCheckKeys = (0..9,'A'..'Y');
-my %ssnCenturySeparators = (18 => '+', 19 => '-', 20 => 'A');
-my $ssnParserRegexp = qr/^(\d\d)(\d\d)(\d\d)(\d\d)(.)(\d\d\d)(.)$/;
+my %ssnCenturySeparators = ('+' => 18, '-' => 19, 'A' => 20);
+my @ssnCenturySeparatorsKeys = keys(%ssnCenturySeparators);
+my $ssnParserRegexp = qr/^(\d\d)(\d\d)(\d\d)(.)(\d\d\d)(.)$/;
+my $isDigitRegexp = qr/^\d+$/;
 
 sub validateSsn {
   my ($ssnString) = @_;
 
-  if ($ssnString =~ $ssnParserRegexp) {
-    #$1 Day
-    #$2 Month
-    #$3 Century
-    #$4 Decade + year
-    #$5 Century separator
-    #$6 order number
-    #$7 check number
-    unless ($1 <= 31 && $1 > 0) {
-      Hetula::Exception::Ssn::Invalid->throw(error => "Bad day '$1'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+  if (my @g = $ssnString =~ $ssnParserRegexp) {
+    #$g[0] Day
+    #$g[1] Month
+    #$g[2] Decade + year
+    #$g[3] Century separator
+    #$g[4] order number
+    #$g[5] check number
+    unless ($g[0] =~ $isDigitRegexp && $g[0] <= 31 && $g[0] > 0) {
+      Hetula::Exception::Ssn::Invalid->throw(error => "Bad day '$g[0]'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
     }
-    unless ($2 <= 12 && $2 > 0) {
-      Hetula::Exception::Ssn::Invalid->throw(error => "Bad month '$2'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    unless ($g[1] =~ $isDigitRegexp && $g[1] <= 12 && $g[1] > 0) {
+      Hetula::Exception::Ssn::Invalid->throw(error => "Bad month '$g[1]'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
     }
-    unless ($ssnCenturySeparators{$3}) {
-      Hetula::Exception::Ssn::Invalid->throw(error => "Unknown century '$3'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    unless ($g[2] =~ $isDigitRegexp) {
+      Hetula::Exception::Ssn::Invalid->throw(error => "Bad month '$g[1]'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
     }
-    unless ($5 eq $ssnCenturySeparators{$3}) {
-      Hetula::Exception::Ssn::Invalid->throw(error => "Given century separator '$5' doesn't match the expected '$ssnCenturySeparators{$3}'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    unless ($ssnCenturySeparators{$g[3]}) {
+      Hetula::Exception::Ssn::Invalid->throw(error => "Unknown century separator '$g[3]'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
     }
-    my $checkChar = _getSsnChecksum($1, $2, $3, $4, $6);
-    unless ($7 eq $checkChar) {
-      Hetula::Exception::Ssn::Invalid->throw(error => "Given check character '$7' doesn't match the expected '$checkChar'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
+    my $checkChar = _getSsnChecksum($g[0], $g[1], $g[2], $g[4]);
+    unless ($g[5] eq $checkChar) {
+      Hetula::Exception::Ssn::Invalid->throw(error => "Given check character '$g[5]' doesn't match the expected '$checkChar'. When parsing ssn '$ssnString'", ssn => {ssn => $ssnString});
     }
   }
   else {
@@ -257,9 +258,9 @@ sub validateSsn {
 =cut
 
 sub _getSsnChecksum {
-  my ($day, $month, $century, $year, $checkNumber) = @_;
+  my ($day, $month, $year, $checkNumber) = @_;
 
-  my $checkNumberSum = sprintf("%02d%02d%2d%2d%03d", $day, $month, $century, $year, $checkNumber);
+  my $checkNumberSum = sprintf("%02d%02d%2d%03d", $day, $month, $year, $checkNumber);
   my $checkNumberIndex = $checkNumberSum % 31;
   return $ssnValidCheckKeys[$checkNumberIndex];
 }
@@ -269,8 +270,9 @@ sub _getSsnChecksum {
 =cut
 
 sub createRandomSsn {
-  my $s = [int(1+rand(28)), int(1+rand(12)), int(18+rand(3)), int(1+rand(99)), undef, int(2+rand(889)), undef];
-  $s = sprintf("%02d%02d%02d%02d%s%03d%s", $s->[0], $s->[1], $s->[2], $s->[3], $ssnCenturySeparators{$s->[2]}, $s->[5], _getSsnChecksum($s->[0], $s->[1], $s->[2], $s->[3], $s->[5]));
+  my $s = [int(1+rand(28)), int(1+rand(12)), int(1+rand(99)), undef, int(2+rand(889)), undef];
+  my $centurySeparator = $ssnCenturySeparatorsKeys[ int((rand(scalar(@ssnCenturySeparatorsKeys)*100)+0.01)/100) ];
+  $s = sprintf("%02d%02d%02d%s%03d%s", $s->[0], $s->[1], $s->[2], $centurySeparator, $s->[4], _getSsnChecksum($s->[0], $s->[1], $s->[2], $s->[4]));
   return $s;
 }
 
