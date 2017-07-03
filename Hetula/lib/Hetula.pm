@@ -27,6 +27,7 @@ use Hetula::Users;
 use Hetula::Logs;
 
 use Hetula::Exception::TimeZone;
+use Hetula::Exception::Environment;
 
 =head2 startup
 
@@ -38,6 +39,7 @@ sub startup {
   my $self = shift;
   my $mode = $self->mode;
 
+  $self->validateEnvironment();
   $self->checkTimezone();
 
   # Forward error messages to the application log
@@ -98,6 +100,31 @@ sub startup {
   Hetula::Schema::flushConnections() unless ($mode eq 'testing');
 }
 
+=head2 validateEnvironment
+
+Make sure the expected environment variables do exist
+
+Output short summary about environment variables that can be used and are in use
+
+=cut
+
+sub validateEnvironment {
+  my ($self) = @_;
+
+  my @sb;
+  push(@sb, "Available environment variables:");
+  push(@sb, "TZ=".($ENV{TZ} // '').", sets the time zone. Defaults to 'date +%z'");
+  push(@sb, "HETULA_HOME=".($ENV{HETULA_HOME} // '').", where the Hetula source code is located");
+  print join("\n", @sb);
+
+  if (! $ENV{HETULA_HOME}) {
+    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_HOME is not defined! It must be the directory of Hetula source code");
+  }
+  elsif(! -r $ENV{HETULA_HOME}) {
+    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_HOME is not readable by the current user ".getpwuid($<)."!");
+  }
+}
+
 =head2 checkTimezone
 
 Sets $ENV{TZ} for DateTime to properly do timezone calculations
@@ -144,13 +171,13 @@ sub getLog4perlConfig {
   my ($self) = @_;
   my $config;
   if ($self->mode eq 'testing') {
-    return 'config/log4perl.conf';
+    return $ENV{HETULA_HOME}.'/config/log4perl.conf';
   }
   elsif (-e '/etc/hetula/hetula.conf') {
     return '/etc/hetula/log4perl.conf';
   }
   else {
-    return 'config/log4perl.conf';
+    return $ENV{HETULA_HOME}.'/config/log4perl.conf';
   }
 }
 
@@ -162,13 +189,13 @@ sub getConfig {
   my ($self) = @_;
   my $config;
   if ($self->mode eq 'testing') {
-    $config = $self->plugin(Config => {file => 't/config/hetula.conf'});
+    $config = $self->plugin(Config => {file => $ENV{HETULA_HOME}.'/t/config/hetula.conf'});
   }
   elsif (-e '/etc/hetula/hetula.conf') {
     $config = $self->plugin(Config => {file => '/etc/hetula/hetula.conf'});
   }
   else {
-    $config = $self->plugin(Config => {file => 'config/hetula.conf'});
+    $config = $self->plugin(Config => {file => $ENV{HETULA_HOME}.'/config/hetula.conf'});
   }
   return validateConfig($self, $config);
 }

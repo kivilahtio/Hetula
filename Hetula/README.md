@@ -21,6 +21,16 @@ apt-get install
 
 cpanm Module::Build
 
+# Clone Hetula
+
+cd /home/hetula
+git clone https://github.com/KohaSuomi/Hetula.git
+
+# Configure environment variables
+
+echo "HETULA_HOME=/home/hetula/Hetula/Hetula" >> /etc/environment
+source /etc/environment
+
 # Build, test, install
 
 perl ./Build.PL
