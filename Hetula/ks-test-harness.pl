@@ -16,16 +16,16 @@ use Scalar::Util qw(blessed);
 
 my ($help, $dryRun);
 my ($verbose, $gitTailLength) = (0, 0);
-my ($clover, $tar, $reinstall);
+my ($clover, $tar, $junit);
 
 
 GetOptions(
     'h|help'                      => \$help,
     'v|verbose:i'                 => \$verbose,
-    'reinstall'                   => \$reinstall,
     'dry-run'                     => \$dryRun,
     'clover'                      => \$clover,
     'tar'                         => \$tar,
+    'junit'                       => \$junit,
 );
 
 my $usage = <<USAGE;
@@ -36,18 +36,19 @@ Runs a ton of tests with other metrics if needed
 
   -v --verbose          Integer, the level of verbosity
 
-  --reinstall           Reinstall the default Koha database. This operation is only allowed
-                        on databases whose name starts with "koha_ci"
-
   --tar                 Create a testResults.tar.gz from all tests and deliverables
 
   --dry-run             Don't run tests or other metrics. Simply show what would happen.
 
-  --clover              Run Devel::Cover and output Clover-reports
+  --clover              Run Devel::Cover and output Clover-reports.
+                        Clover reports are stored to testResults/clover/clover.xml
+
+  --junit               Run test via TAP::Harness::Junit instead of TAP::Harness. Junit xml results
+                        are stored to testResults/junit/*.xml
 
 EXAMPLE
 
-  ks-test-harness.pl --tar --clover
+  ks-test-harness.pl --tar --clover --junit
 
 USAGE
 
@@ -74,6 +75,7 @@ sub run {
         resultsDir => undef,
         tar        => $tar,
         clover     => $clover,
+        junit      => $junit,
         testFiles  => \@tests,
         dryRun     => $dryRun,
         verbose    => $verbose,
