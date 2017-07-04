@@ -17,6 +17,7 @@ use Scalar::Util qw(blessed);
 my ($help, $dryRun);
 my ($verbose, $gitTailLength) = (0, 0);
 my ($clover, $tar, $junit);
+my ($run);
 
 
 GetOptions(
@@ -26,6 +27,7 @@ GetOptions(
     'clover'                      => \$clover,
     'tar'                         => \$tar,
     'junit'                       => \$junit,
+    'run'                         => \$run,
 );
 
 my $usage = <<USAGE;
@@ -46,9 +48,13 @@ Runs a ton of tests with other metrics if needed
   --junit               Run test via TAP::Harness::Junit instead of TAP::Harness. Junit xml results
                         are stored to testResults/junit/*.xml
 
+  --run                 Actually run the tests. Without this flag, the script will simply compile and run
+                        without doing any work or changes.
+                        You can use this to test that this script is actually compilable.
+
 EXAMPLE
 
-  ks-test-harness.pl --tar --clover --junit
+  ks-test-harness.pl --tar --clover --junit --run
 
 USAGE
 
@@ -62,10 +68,8 @@ use TAP::Harness::JUnit;
 use KSTestHarness;
 
 
-run();
+run() if $run;
 sub run {
-    C4::Installer::reinstall($verbose) if $reinstall;
-
     my (@tests, $tests);
     push(@tests, @{_getAllTests()});
 
