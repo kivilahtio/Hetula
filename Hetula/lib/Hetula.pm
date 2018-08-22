@@ -14,6 +14,7 @@ Hetula
 
 use Mojo::IOLoop;
 
+use FindBin;
 use Try::Tiny;
 use Scalar::Util qw(blessed);
 
@@ -39,7 +40,6 @@ sub startup {
   my $self = shift;
   my $mode = $self->mode;
 
-  $self->validateEnvironment();
   $self->checkTimezone();
 
   # Forward error messages to the application log
@@ -100,30 +100,6 @@ sub startup {
   Hetula::Schema::flushConnections() unless ($mode eq 'testing');
 }
 
-=head2 validateEnvironment
-
-Make sure the expected environment variables do exist
-
-Output short summary about environment variables that can be used and are in use
-
-=cut
-
-sub validateEnvironment {
-  my ($self) = @_;
-
-  my @sb;
-  push(@sb, "Available environment variables:");
-  push(@sb, "TZ=".($ENV{TZ} // '').", sets the time zone. Defaults to 'date +%z'");
-  push(@sb, "HETULA_HOME=".($ENV{HETULA_HOME} // '').", where the Hetula source code is located");
-
-  if (! $ENV{HETULA_HOME}) {
-    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_HOME is not defined! It must be the directory of Hetula source code\n".join("\n", @sb));
-  }
-  elsif(! -r $ENV{HETULA_HOME}) {
-    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_HOME is not readable by the current user ".getpwuid($<)."!\n".join("\n", @sb));
-  }
-}
-
 =head2 checkTimezone
 
 Sets $ENV{TZ} for DateTime to properly do timezone calculations
@@ -143,41 +119,13 @@ sub checkTimezone {
   }
 }
 
-=head2 getLogger
-
-=cut
-
-sub getLogger {
-  my ($self) = @_;
-  my $config;
-  if ($self->mode eq 'testing') {
-    $config = $self->plugin(Config => {file => 't/config/log4perl.conf'});
-  }
-  elsif (-e '/etc/hetula/hetula.conf') {
-    $config = $self->plugin(Config => {file => '/etc/hetula/log4perl.conf'});
-  }
-  else {
-    $config = $self->plugin(Config => {file => 'config/log4perl.conf'});
-  }
-  
-}
-
 =head2 getLog4perlConfig
 
 =cut
 
 sub getLog4perlConfig {
   my ($self) = @_;
-  my $config;
-  if ($self->mode eq 'testing') {
-    return $ENV{HETULA_HOME}.'/config/log4perl.conf';
-  }
-  elsif (-e '/etc/hetula/hetula.conf') {
-    return '/etc/hetula/log4perl.conf';
-  }
-  else {
-    return $ENV{HETULA_HOME}.'/config/log4perl.conf';
-  }
+  return $self->_getConfig('log4perl.conf');
 }
 
 =head2 getConfig
@@ -186,16 +134,7 @@ sub getLog4perlConfig {
 
 sub getConfig {
   my ($self) = @_;
-  my $config;
-  if ($self->mode eq 'testing') {
-    $config = $self->plugin(Config => {file => $ENV{HETULA_HOME}.'/t/config/hetula.conf'});
-  }
-  elsif (-e '/etc/hetula/hetula.conf') {
-    $config = $self->plugin(Config => {file => '/etc/hetula/hetula.conf'});
-  }
-  else {
-    $config = $self->plugin(Config => {file => $ENV{HETULA_HOME}.'/config/hetula.conf'});
-  }
+  my $config = $self->plugin(Config => {file => $self->_getConfig('hetula.conf')});
   return validateConfig($self, $config);
 }
 
@@ -214,6 +153,28 @@ sub validateConfig {
     die "$prologue '$mc' is not defined" unless ($config->{$mc});
   }
   return $config;
+}
+
+=head3 _getConfig
+
+Does it's best to find the correct configuration file from different operational modes
+'testing'|something_else
+
+@returns String, path to the given config file from the current operational mode.
+
+=cut
+
+sub _getConfig {
+  my ($self, $filename) = @_;
+  if ($self->mode eq 'testing') {
+    return "$FindBin::Bin/../t/config/$filename";
+  }
+  elsif (-e "/etc/hetula/$filename") {
+    return "/etc/hetula/$filename";
+  }
+  else {
+    return "$FindBin::Bin/config/$filename";
+  }
 }
 
 =head2 createPermissions

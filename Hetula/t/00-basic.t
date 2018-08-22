@@ -2,6 +2,8 @@ use 5.22.0;
 use utf8;
 binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 
 use Mojo::Base -strict;
 use Carp;

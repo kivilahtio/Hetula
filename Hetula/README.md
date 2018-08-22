@@ -1,14 +1,18 @@
-# Hetula
+################
+#### Hetula ####
+################
+
 Secure storage for private patron data.
 
-# Requirements
+### Requirements ###
 
-- Ubuntu 16.04 or later
+- Ubuntu 18.04 or later
 - Systemd
+- MariaDB
 
-# Installation
+### Installation ###
 
-# Install system package dependencies
+### Install system package dependencies ###
 
 apt-get install
   - git
@@ -17,21 +21,32 @@ apt-get install
   - build-essential
   - libssl-dev
   - libipc-system-simple-perlcpanm
-  - sqlite3
+  - mariadb-server
 
 cpanm Module::Build
 
-# Clone Hetula
+### Configure database ###
+
+CREATE DATABASE hetula;
+CREATE USER 'hetula'@'localhost' IDENTIFIED WITH unix_socket;
+GRANT ALL ON hetula.* to 'hetula'@'localhost';
+
+# Create test database
+
+CREATE DATABASE hetula_test;
+GRANT ALL ON hetula_test.* to 'hetula'@'localhost';
+
+### Clone Hetula
 
 cd /home/hetula
 git clone https://github.com/KohaSuomi/Hetula.git
 
-# Configure environment variables
+### Configure environment variables
 
 echo "HETULA_HOME=/home/hetula/Hetula/Hetula" >> /etc/environment
 source /etc/environment
 
-# Build, test, install
+### Build, test, install
 
 perl ./Build.PL
 ./Build
@@ -40,11 +55,11 @@ sudo ./Build install
 ./Build realclean
 
 
-# Configure hetula
+### Configure hetula
 
 nano /etc/hetula/hetula.conf
 
-# Restart systemd service
+### Restart systemd service
 
 systemctl restart hetula
 

@@ -1,7 +1,10 @@
+#!/usr/bin/env perl
 use 5.22.0;
 use utf8;
 binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 
 use English;
 use Carp;
@@ -18,11 +21,11 @@ use File::Find;
 ok(1, "Find all .pl and .pm -files and check if they actually compile");
 
 #Find files in the usual places
-my $searchDir = $ENV{HETULA_HOME}.'/lib/';
+my $searchDir = "$FindBin::Bin/../lib/";
 File::Find::find( \&testFile, $searchDir );
 
 #Test odd assortment of other files
-testFile($ENV{HETULA_HOME}.'/ks-test-harness.pl');
+testFile("$FindBin::Bin/../ks-test-harness.pl");
 
 sub testFile {
   my ($filename) = @_;
