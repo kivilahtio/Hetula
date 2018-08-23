@@ -27,3 +27,4 @@ MYMETA.yml
 testResults.tar.gz
 testResults
 blib
+*.vstags
