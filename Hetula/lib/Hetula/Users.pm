@@ -1,8 +1,3 @@
-use 5.22.0;
-use utf8;
-binmode STDOUT, ":utf8";
-binmode STDERR, ":utf8";
-
 package Hetula::Users;
 
 =head1 NAME
@@ -15,13 +10,9 @@ Manage this class of objects
 
 =cut
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Data::Dumper;
-use Digest::SHA;
+use Hetula::Pragmas;
 
-use Hetula::Schema;
+use Digest::SHA;
 
 use Hetula::Exception::User::NotFound;
 

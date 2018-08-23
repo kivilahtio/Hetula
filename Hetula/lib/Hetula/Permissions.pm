@@ -1,5 +1,3 @@
-use 5.22.0;
-
 package Hetula::Permissions;
 
 =head1 NAME
@@ -12,12 +10,7 @@ Manage this class of objects
 
 =cut
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Data::Dumper;
-
-use Hetula::Schema;
+use Hetula::Pragmas;
 
 use Hetula::Exception::Permission::NotFound;
 

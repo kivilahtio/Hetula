@@ -1,14 +1,12 @@
-use 5.22.0;
-
 package Hetula::Exception;
+
+use Hetula::Pragmas;
 
 use Exception::Class (
   'Hetula::Exception' => {
     description => 'Hetula exceptions base class',
   },
 );
-
-use Scalar::Util qw(blessed);
 
 sub newFromDie {
   my ($class, $die) = @_;

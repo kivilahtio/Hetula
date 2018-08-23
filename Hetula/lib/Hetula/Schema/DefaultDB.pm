@@ -1,5 +1,3 @@
-use 5.22.0;
-
 package Hetula::Schema::DefaultDB;
 
 =head1 NAME
@@ -12,12 +10,8 @@ Create the default db contents
 
 =cut
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Data::Dumper;
+use Hetula::Pragmas;
 
-use Hetula::Schema;
 use Hetula::Users;
 use Hetula::Organizations;
 
@@ -44,7 +38,7 @@ sub _checkIfDBExists {
   my ($schema) = @_;
   my $user;
   eval {
-    $user = $schema->resultset('User')->search({}, {limit => 1})->single;
+    $user = $schema->resultset('User')->search({})->count;
   };
   return 1 if $user; #The DB exists
   return undef;

@@ -1,6 +1,6 @@
-use 5.22.0;
-
 package Hetula::Exception::Auth::Authorization;
+
+use Hetula::Pragmas;
 
 use Exception::Class (
     'Hetula::Exception::Auth::Authorization' => {

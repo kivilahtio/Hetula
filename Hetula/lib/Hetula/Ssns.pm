@@ -1,5 +1,3 @@
-use 5.22.0;
-
 package Hetula::Ssns;
 
 =head1 NAME
@@ -12,15 +10,9 @@ Manage this class of objects
 
 =cut
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Data::Dumper;
-use Digest::SHA;
-use Try::Tiny;
-use Scalar::Util qw(blessed);
+use Hetula::Pragmas;
 
-use Hetula::Schema;
+use Digest::SHA;
 
 use Hetula::Exception;
 use Hetula::Exception::Ssn::NotFound;

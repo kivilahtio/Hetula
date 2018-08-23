@@ -1,12 +1,8 @@
-use 5.22.0;
-
 package Hetula::Controller::Default;
 
-use Mojo::Base 'Mojolicious::Controller';
+use Hetula::Pragmas;
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
+use Mojo::Base 'Mojolicious::Controller';
 
 =head1 NAME
 

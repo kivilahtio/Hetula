@@ -82,13 +82,14 @@ $class->new(
 
   },
   requires => {
-    'Carp'                              => '> 0.01',
+    'Carp::Always::Color'               => '> 0.01',
     'DateTime'                          => '> 0.01',
     'DateTime::Format::ISO8601'         => '> 0.01',
     'DBIx::Class'                       => '> 0.01',
     'DBIx::Class::TimeStamp'            => '> 0.01',
     'DBIx::Class::InflateColumn::Object::Enum' => '> 0.01',
     'Digest::SHA'                       => '> 0.01',
+    'Import::Into'                      => '> 0.01',
     'Log::Log4perl'                     => '> 0.01',
     'Mojolicious'                       => '> 0.01',
     'Mojolicious::Plugin::OpenAPI'      => '> 0.01',

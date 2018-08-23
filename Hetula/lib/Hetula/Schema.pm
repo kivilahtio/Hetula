@@ -1,18 +1,10 @@
-use 5.22.0;
-
 package Hetula::Schema;
+
+use Hetula::Pragmas;
+
 use base qw/DBIx::Class::Schema/;
-
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use English;
-use Scalar::Util qw(blessed);
-use Try::Tiny;
-
 __PACKAGE__->load_namespaces();
 
-use Hetula::Logger;
 my $l = bless({}, 'Hetula::Logger');
 
 =head1 NAME

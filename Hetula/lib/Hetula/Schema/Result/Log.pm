@@ -1,12 +1,7 @@
-use 5.22.0;
-
 package Hetula::Schema::Result::Log;
 use base qw/DBIx::Class::Core/;
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Scalar::Util qw(blessed);
+use Hetula::Pragmas 'no-schema';
 
 ##################################
 ## ## ##   DBIx::Schema   ## ## ##

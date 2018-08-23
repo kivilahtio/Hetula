@@ -1,5 +1,3 @@
-use 5.22.0;
-
 package Hetula::Organizations;
 
 =head1 NAME
@@ -12,16 +10,10 @@ Manage this class of objects
 
 =cut
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-
-use Hetula::Schema;
+use Hetula::Pragmas;
 
 use Hetula::Exception::Organization::NotFound;
 
-
-use Hetula::Logger;
 my $l = bless({}, 'Hetula::Logger');
 
 =head2 listOrganizations

@@ -1,11 +1,7 @@
-use 5.22.0;
-
 package Hetula::Schema::Result::UserPermission;
 use base qw/DBIx::Class::Core/;
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
+use Hetula::Pragmas 'no-schema';
 
 __PACKAGE__->table('user_permission');
 __PACKAGE__->add_columns(

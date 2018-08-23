@@ -1,5 +1,3 @@
-use 5.22.0;
-
 package Hetula::Controller::Api::V1::Doc;
 
 use Mojo::Base 'Mojolicious::Controller';
@@ -10,11 +8,7 @@ Hetula::Api::V1::Doc
 
 =cut
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Try::Tiny;
-use Scalar::Util qw(blessed);
+use Hetula::Pragmas;
 
 sub index {
   my ($c) = @_;

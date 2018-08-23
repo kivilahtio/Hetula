@@ -1,15 +1,9 @@
-use 5.22.0;
-use utf8;
-binmode STDOUT, ":utf8";
-binmode STDERR, ":utf8";
-
 package Hetula::Logger;
 
-use Carp qw(longmess);
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
+use Carp::Always::Color;
 use Scalar::Util qw(blessed);
 
+# Copyright (C) 2018 National Library of Finland
 # Copyright (C) 2017 Koha-Suomi
 #
 # This file is part of Hetula.
@@ -24,7 +18,7 @@ sub AUTOLOAD {
   $method =~ s/.*://;
   return $l->$method(@_) if $method eq 'DESTROY';
   unless (blessed($l)) {
-    longmess "Hetula::Logger invoked with an unblessed reference??";
+    warn "Hetula::Logger invoked with an unblessed reference??";
   }
   unless ($l->{_log}) {
     $l->{_log} = Log::Log4perl->get_logger();

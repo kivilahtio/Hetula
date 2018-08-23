@@ -1,5 +1,3 @@
-use 5.22.0;
-
 package Hetula::Logs;
 
 =head1 NAME
@@ -12,13 +10,9 @@ Manage this class of objects
 
 =cut
 
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Data::Dumper;
-use DateTime::Format::ISO8601;
+use Hetula::Pragmas;
 
-use Hetula::Schema;
+use DateTime::Format::ISO8601;
 
 use Hetula::Exception::Log::NotFound;
 
