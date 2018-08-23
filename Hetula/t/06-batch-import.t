@@ -1,15 +1,9 @@
-use 5.22.0;
-use utf8;
-binmode STDOUT, ":utf8";
-binmode STDERR, ":utf8";
+#!/usr/bin/env perl
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 
 use Mojo::Base -strict;
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Try::Tiny;
-use Scalar::Util qw(blessed);
-
+use Hetula::Pragmas;
 use Test::More;
 use Test::Mojo;
 use Test::MockModule;

@@ -1,6 +1,6 @@
-use 5.22.0;
-
 package t::lib::Auth;
+
+use Hetula::Pragmas;
 
 use t::lib::U;
 

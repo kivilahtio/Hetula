@@ -1,17 +1,9 @@
 #!/usr/bin/env perl
-use 5.22.0;
-use utf8;
-binmode STDOUT, ":utf8";
-binmode STDERR, ":utf8";
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use English;
-use Carp;
-use autodie;
-$Carp::Verbose = 'true'; #die with stack trace
-use Try::Tiny;
-use Scalar::Util qw(blessed);
+use Mojo::Base -strict;
+use Hetula::Pragmas;
 
 use Test::More;
 

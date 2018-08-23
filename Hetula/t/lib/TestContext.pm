@@ -1,6 +1,6 @@
-use 5.22.0;
-
 package t::lib::TestContext;
+
+use Hetula::Pragmas;
 
 use Hetula::Users;
 

@@ -1,6 +1,6 @@
-use 5.22.0;
-
 package t::lib::U;
+
+use Hetula::Pragmas;
 
 use Test::More;
 
