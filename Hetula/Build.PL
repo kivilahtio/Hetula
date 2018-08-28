@@ -86,6 +86,7 @@ $class->new(
     'DateTime'                          => '> 0.01',
     'DateTime::Format::ISO8601'         => '> 0.01',
     'DBIx::Class'                       => '> 0.01',
+    'DBIx::Class::Migration'            => '> 0.01',
     'DBIx::Class::TimeStamp'            => '> 0.01',
     'DBIx::Class::InflateColumn::Object::Enum' => '> 0.01',
     'Digest::SHA'                       => '> 0.01',

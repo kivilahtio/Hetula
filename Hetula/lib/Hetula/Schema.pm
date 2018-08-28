@@ -1,11 +1,18 @@
-package Hetula::Schema;
+package Hetula::Schema; #Database schema version number after the package name
+
+our $VERSION = 1; #Database schema version number, used to track upgrades/downgrades
 
 use Hetula::Pragmas;
+
+use DBIx::Class::Migration;
 
 use base qw/DBIx::Class::Schema/;
 __PACKAGE__->load_namespaces();
 
 my $l = bless({}, 'Hetula::Logger');
+
+use Hetula::Exception::Database::Missing;
+use Hetula::Exception::Database::Misconfigured;
 
 =head1 NAME
 
@@ -68,6 +75,38 @@ sub SetConfig {
     die "$prologue 'db_socket' or 'db_host' and 'db_port' are not defined";
   }
   $dbconfig = $config;
+}
+
+=head2 isDBOk
+
+Check if the Database is properly configured, installed and accessible.
+
+ @returns List of, 0 - Integer, currently installed database version
+                   1 - Hetula::Schema::Result::User, the admin user
+ @throws Hetula::Exception::Database
+ @throws Hetula::Exception::Database::Missing
+ @throws Hetula::Exception::Database::Misconfigured
+
+=cut
+
+sub isDBOk() {
+  my ($dbVersion, $adminUserOk);
+
+  my $schema;
+  eval {
+    $schema = schema();
+  };
+  if ($@) {
+    Hetula::Exception::Database->throw(error => "Error getting the database schema:\n".$@);
+  }
+
+  my $migration = DBIx::Class::Migration->new(schema => $schema);
+  if ($migration->dbic_dh->version_storage_is_installed()) {
+    $dbVersion = $migration->dbic_dh->database_version();
+  }
+  else {
+    Hetula::Exception::Database::Missing->throw(error => "Database is missing. Install it with 'dbic-migrate install'");
+  }
 }
 
 =head2 _new_schema

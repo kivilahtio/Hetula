@@ -60,7 +60,8 @@ sub startup {
   $self->secrets([$config->{secret}]);
 
   Hetula::Schema::SetConfig($config);
-  Hetula::Schema::DefaultDB::createDB();
+  Hetula::Schema::isDBOk();
+  Hetula::Schema::DefaultDB::populateDB($self);
 
   $self->plugin("OpenAPI" => {
     url => $self->home->rel_file("public/api/v1/swagger/swagger.yaml"),
@@ -173,7 +174,7 @@ sub _getConfig {
     return "/etc/hetula/$filename";
   }
   else {
-    return "$FindBin::Bin/config/$filename";
+    return "$FindBin::Bin/../config/$filename";
   }
 }
 

@@ -1,0 +1,922 @@
+---
+schema:
+  procedures: {}
+  tables:
+    apicredential:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - userid
+          match_type: ''
+          name: apicredential_userid
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - userid
+          match_type: ''
+          name: apicredential_fk_userid
+          on_delete: CASCADE
+          on_update: ''
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        client_id:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: client_id
+          order: 3
+          size:
+            - 32
+        client_redirection_url:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: client_redirection_url
+          order: 6
+          size:
+            - 50
+        client_secret:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: client_secret
+          order: 4
+          size:
+            - 32
+        client_type:
+          data_type: enum
+          default_value: ~
+          extra:
+            list:
+              - public
+              - confidential
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: client_type
+          order: 5
+          size:
+            - 0
+        client_website:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: client_website
+          order: 7
+          size:
+            - 50
+        createtime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: createtime
+          order: 8
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        updatetime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updatetime
+          order: 9
+          size:
+            - 0
+        userid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: userid
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - userid
+          name: apicredential_idx_userid
+          options: []
+          type: NORMAL
+      name: apicredential
+      options: []
+      order: 5
+    log:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - organizationid
+          match_type: ''
+          name: log_fk_organizationid
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - id
+          reference_table: organization
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - userid
+          match_type: ''
+          name: log_fk_userid
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        description:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: description
+          order: 5
+          size:
+            - 50
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        ip:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: ip
+          order: 6
+          size:
+            - 50
+        organizationid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: organizationid
+          order: 3
+          size:
+            - 0
+        request:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: request
+          order: 4
+          size:
+            - 50
+        updatetime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updatetime
+          order: 7
+          size:
+            - 0
+        userid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: userid
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - organizationid
+          name: log_idx_organizationid
+          options: []
+          type: NORMAL
+        - fields:
+            - userid
+          name: log_idx_userid
+          options: []
+          type: NORMAL
+      name: log
+      options: []
+      order: 6
+    organization:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - name
+          match_type: ''
+          name: organization_name
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+      fields:
+        createtime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: createtime
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: name
+          order: 2
+          size:
+            - 30
+        updatetime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updatetime
+          order: 4
+          size:
+            - 0
+      indices: []
+      name: organization
+      options: []
+      order: 1
+    permission:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - name
+          match_type: ''
+          name: permission_name
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+      fields:
+        createtime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: createtime
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: name
+          order: 2
+          size:
+            - 40
+        updatetime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updatetime
+          order: 4
+          size:
+            - 0
+      indices: []
+      name: permission
+      options: []
+      order: 2
+    ssn:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - ssn
+          match_type: ''
+          name: ssn_ssn
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+      fields:
+        createtime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: createtime
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        notes:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: notes
+          order: 3
+          size:
+            - 0
+        ssn:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: ssn
+          order: 2
+          size:
+            - 30
+        updatetime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updatetime
+          order: 5
+          size:
+            - 0
+      indices: []
+      name: ssn
+      options: []
+      order: 3
+    ssn_organization:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - ssnid
+            - organizationid
+          match_type: ''
+          name: ssn_organization_ssnid_organizationid
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - organizationid
+          match_type: ''
+          name: ssn_organization_fk_organizationid
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: organization
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - ssnid
+          match_type: ''
+          name: ssn_organization_fk_ssnid
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: ssn
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        organizationid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: organizationid
+          order: 3
+          size:
+            - 0
+        ssnid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: ssnid
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - organizationid
+          name: ssn_organization_idx_organizationid
+          options: []
+          type: NORMAL
+        - fields:
+            - ssnid
+          name: ssn_organization_idx_ssnid
+          options: []
+          type: NORMAL
+      name: ssn_organization
+      options: []
+      order: 7
+    user:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - username
+          match_type: ''
+          name: user_username
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+      fields:
+        createtime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: createtime
+          order: 6
+          size:
+            - 0
+        failed_login_count:
+          data_type: integer
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: failed_login_count
+          order: 5
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        password:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: password
+          order: 3
+          size:
+            - 64
+        realname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: realname
+          order: 4
+          size:
+            - 50
+        updatetime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: updatetime
+          order: 7
+          size:
+            - 0
+        username:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: username
+          order: 2
+          size:
+            - 30
+      indices: []
+      name: user
+      options: []
+      order: 4
+    user_organization:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - userid
+            - organizationid
+          match_type: ''
+          name: user_organization_userid_organizationid
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - organizationid
+          match_type: ''
+          name: user_organization_fk_organizationid
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: organization
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - userid
+          match_type: ''
+          name: user_organization_fk_userid
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        organizationid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: organizationid
+          order: 3
+          size:
+            - 0
+        userid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: userid
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - organizationid
+          name: user_organization_idx_organizationid
+          options: []
+          type: NORMAL
+        - fields:
+            - userid
+          name: user_organization_idx_userid
+          options: []
+          type: NORMAL
+      name: user_organization
+      options: []
+      order: 8
+    user_permission:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - userid
+            - permissionid
+          match_type: ''
+          name: user_permission_userid_permissionid
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - permissionid
+          match_type: ''
+          name: user_permission_fk_permissionid
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: permission
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - userid
+          match_type: ''
+          name: user_permission_fk_userid
+          on_delete: CASCADE
+          on_update: CASCADE
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        permissionid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: permissionid
+          order: 3
+          size:
+            - 0
+        userid:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: userid
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - permissionid
+          name: user_permission_idx_permissionid
+          options: []
+          type: NORMAL
+        - fields:
+            - userid
+          name: user_permission_idx_userid
+          options: []
+          type: NORMAL
+      name: user_permission
+      options: []
+      order: 9
+  triggers: {}
+  views: {}
+translator:
+  add_drop_table: 0
+  filename: ~
+  no_comments: 0
+  parser_args:
+    sources:
+      - ApiCredential
+      - Log
+      - Organization
+      - Permission
+      - Ssn
+      - SsnOrganization
+      - User
+      - UserOrganization
+      - UserPermission
+  parser_type: SQL::Translator::Parser::DBIx::Class
+  producer_args: {}
+  producer_type: SQL::Translator::Producer::YAML
+  show_warnings: 0
+  trace: 0
+  version: 0.11024

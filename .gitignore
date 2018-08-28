@@ -28,3 +28,6 @@ testResults.tar.gz
 testResults
 blib
 *.vstags
+share/hetula-schema/*
+share/hetula-schema.db
+

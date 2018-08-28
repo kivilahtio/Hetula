@@ -13,46 +13,33 @@ Create the default db contents
 use Hetula::Pragmas;
 
 use Hetula::Users;
-use Hetula::Organizations;
 
+use Hetula::Exception::Auth::AccountBlocked;
 
-=head2 createDB
+=head2 populateDB
 
-Creates the DB structure if it is not present
+Is called every time the application starts.
+Makes sure the application has the minimum state it needs to operate.
+
+ @throws Hetula::Exception::Auth::AccountBlocked, if the admin account (id=1) is not properly configured
 
 =cut
 
-sub createDB {
-  my () = @_;
-  my $schema = Hetula::Schema->schema();
+sub populateDB($app) {
+  my ($schema) = Hetula::Schema::schema();
+  print Data::Dumper::Dumper $app->config;
 
-  #$schema->storage->debug(1);
-  unless (_checkIfDBExists($schema)) {
-    $schema->deploy();
-    _populateCoreData($schema);
+  #Upsert the admin user which has all the permissions
+  unless ($app->config->{admin_name} && $app->config->{admin_pass}) {
+    Hetula::Exception::Auth::AccountBlocked->throw(error => "Hetula app configurations admin_name and admin_pass are undefined. Cannot create a default super administrator account.");
   }
-  #$schema->storage->debug(0);
-}
-
-sub _checkIfDBExists {
-  my ($schema) = @_;
-  my $user;
-  eval {
-    $user = $schema->resultset('User')->search({})->count;
-  };
-  return 1 if $user; #The DB exists
-  return undef;
-}
-
-sub _populateCoreData {
-  my ($schema) = @_;
-
-  Hetula::Users::createUser({id => 1, username => 'admin', realname => 'Super administrator account', password => '1234'});
-  #reverse alphabetical order is important to test sorting of results
-  Hetula::Organizations::createOrganization({name => 'Vaara'});
-  Hetula::Organizations::createOrganization({name => 'Outi'});
-  Hetula::Organizations::createOrganization({name => 'Lumme'});
-  Hetula::Organizations::createOrganization({name => 'Lappi'});
+  my $admin = Hetula::Users::getUser({id => 1});
+  unless ($admin) {
+    Hetula::Users::createUser({id => 1, username => $app->config->{admin_name}, realname => 'Super administrator account', password => $app->config->{admin_pass}});
+  }
+  else {
+    Hetula::Users::modUser({id => 1, username => $app->config->{admin_name}, password => $app->config->{admin_pass}});
+  }
 }
 
 1;
