@@ -40,6 +40,7 @@ sub startup {
   my $self = shift;
   my $mode = $self->mode;
 
+  $self->validateEnvironment();
   $self->checkTimezone();
 
   # Forward error messages to the application log
@@ -161,20 +162,41 @@ sub validateConfig {
 Does it's best to find the correct configuration file from different operational modes
 'testing'|something_else
 
-@returns String, path to the given config file from the current operational mode.
+ @returns String, path to the given config file from the current operational mode.
+ @throws Hetula::Exception::Environment, if the config file is not accessible.
 
 =cut
 
 sub _getConfig {
   my ($self, $filename) = @_;
-  if ($self->mode eq 'testing') {
-    return "$FindBin::Bin/../t/config/$filename";
+  my $filepath = $ENV{HETULA_CONFIGS}.'/'.$filename.'-'.$self->mode;
+  if (! -r $filepath) {
+    Hetula::Exception::Environment->throw(error => "Configuration file '$filepath' is not readable by the current user '".$ENV{LOGNAME} || $ENV{USER} || getpwuid($<)."'");
   }
-  elsif (-e "/etc/hetula/$filename") {
-    return "/etc/hetula/$filename";
+  return $filepath;
+}
+
+=head2 validateEnvironment
+
+Make sure the expected environment variables do exist
+
+Output a short summary about environment variables that can be used and are in use
+
+=cut
+
+sub validateEnvironment {
+  my ($self) = @_;
+
+  my @sb;
+  push(@sb, "Available environment variables:");
+  push(@sb, "TZ=".($ENV{TZ} // '').", sets the time zone. Defaults to 'date +%z'");
+  push(@sb, "HETULA_CONFIGS=".($ENV{HETULA_CONFIGS} // '').", where the Hetula configuration files are located");
+
+  if (! $ENV{HETULA_CONFIGS}) {
+    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_CONFIGS is not defined!");
   }
-  else {
-    return "$FindBin::Bin/../config/$filename";
+  elsif(! -d $ENV{HETULA_CONFIGS}) {
+    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_CONFIGS='".$ENV{HETULA_CONFIGS}."' must point to a directory!");
   }
 }
 
@@ -233,7 +255,7 @@ sub createPermissions {
     $oldPerm->delete if $oldPerm;
   }
   ## These new permissions are not present, so add them and grant them to the admin
-  my $user = Hetula::Users::getUser({username => 'admin'});
+  my $user = Hetula::Users::getUser({id => 1});
   while(my ($k,$v) = each(%permissions)) {
     my $permission = Hetula::Permissions::createPermission({name => $k});
     $user->grantPermission($permission);

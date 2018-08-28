@@ -27,13 +27,18 @@ Makes sure the application has the minimum state it needs to operate.
 
 sub populateDB($app) {
   my ($schema) = Hetula::Schema::schema();
-  print Data::Dumper::Dumper $app->config;
 
   #Upsert the admin user which has all the permissions
   unless ($app->config->{admin_name} && $app->config->{admin_pass}) {
     Hetula::Exception::Auth::AccountBlocked->throw(error => "Hetula app configurations admin_name and admin_pass are undefined. Cannot create a default super administrator account.");
   }
-  my $admin = Hetula::Users::getUser({id => 1});
+  my $admin;
+  try {
+    $admin = Hetula::Users::getUser({id => 1})
+  } catch {
+    $_->rethrow unless (blessed($_) && $_->isa('Hetula::Exception::User::NotFound'));
+  };
+
   unless ($admin) {
     Hetula::Users::createUser({id => 1, username => $app->config->{admin_name}, realname => 'Super administrator account', password => $app->config->{admin_pass}});
   }
