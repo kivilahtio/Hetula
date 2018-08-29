@@ -263,7 +263,7 @@ sub validateSsn {
 sub _getSsnChecksum {
   my ($day, $month, $year, $checkNumber) = @_;
 
-  my $checkNumberSum = sprintf("%02d%02d%2d%03d", $day, $month, $year, $checkNumber);
+  my $checkNumberSum = sprintf("%02d%02d%02d%03d", $day, $month, $year, $checkNumber);
   my $checkNumberIndex = $checkNumberSum % 31;
   return $ssnValidCheckKeys[$checkNumberIndex];
 }

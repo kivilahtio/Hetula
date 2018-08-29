@@ -4,7 +4,7 @@ use lib "$FindBin::Bin/../lib";
 
 use Mojo::Base -strict;
 use Hetula::Pragmas;
-use Test::More;
+use Test::More tests => 2;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -24,8 +24,8 @@ use Hetula::Ssns;
 
 
 subtest "Api V1 Batch import a small batch of ssns", sub {
+  plan tests => 33;
   my ($ssnBatch, $body, $r) = @_;
-  eval {
 
   t::lib::Auth::doPasswordLogin($t);
 
@@ -49,7 +49,7 @@ subtest "Api V1 Batch import a small batch of ssns", sub {
                              '  And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($r->{ssn}->{updatetime}),
                              '  And the updatetime is in ISO8601');
-  is($r->{ssn}->{id}, 2,     '  And the id is ok');
+  ok($r->{ssn}->{id},        '  And the id is ok');
   is($r->{ssn}->{ssn}, $ssnBatch->[0],  '  And the ssn is the same');
   is($r->{status}, '201',    '  And the status means, that a new ssn was added');
   is($r->{error}, undef,     '  And there is no error');
@@ -60,7 +60,7 @@ subtest "Api V1 Batch import a small batch of ssns", sub {
                              '  And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($r->{ssn}->{updatetime}),
                              '  And the updatetime is in ISO8601');
-  is($r->{ssn}->{id}, 1,     '  And the id is ok');
+  ok($r->{ssn}->{id},        '  And the id is ok');
   is($r->{ssn}->{ssn}, $ssnBatch->[1],  '  And the ssn is the same');
   is($r->{status}, '409',    '  And the status means, that this ssn already existed for this organization');
   ok($r->{error} =~ /^Hetula::Exception::Ssn::AlreadyExists/, '  And the error was about ssn already existing');
@@ -78,18 +78,16 @@ subtest "Api V1 Batch import a small batch of ssns", sub {
                                         '  And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($r->{ssn}->{updatetime}),
                                         '  And the updatetime is in ISO8601');
-  is($r->{ssn}->{id}, 3,                '  And the id is ok');
+  ok($r->{ssn}->{id},                   '  And the id is ok');
   is($r->{ssn}->{ssn}, $ssnBatch->[3],  '  And the ssn is the same');
   is($r->{status}, '201',               '  And the status means, that a new ssn was added');
   is($r->{error}, undef,                '  And there is no error');
-  };
-  ok(0, $@) if $@;
 };
 
 
 subtest "Api V1 Batch import a big batch of ssns", sub {
+  plan tests => 6;
   my ($ssnBatch, $body, $r, @runtime) = @_;
-  eval {
 
   $ssnBatch = randomSsnBatch(1000);
   ok($ssnBatch, 'Given a big batch of ssns');
@@ -104,9 +102,6 @@ subtest "Api V1 Batch import a big batch of ssns", sub {
   is(scalar(@$body), 1000,   'And the result has 1000 reports');
   $runtime[2] = $runtime[1]-$runtime[0];
   ok($runtime[2] < 30, 'And the runtime was reasonable'); #Adjusted for clover tests
-
-  };
-  ok(0, $@) if $@;
 };
 
 
