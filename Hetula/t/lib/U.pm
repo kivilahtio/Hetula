@@ -80,6 +80,7 @@ sub testArrayToHash {
   is(scalar(@$expectedArrays), scalar(@$realHashes), 'Given expected and received objects, in equal amounts');
 
   my $fault;
+  my @faults;
   for (my $i=0 ; $i<scalar(@$expectedArrays) ; $i++) {
     my $expected = $expectedArrays->[$i];
     my $real = $realHashes->[$i];
@@ -102,13 +103,12 @@ sub testArrayToHash {
       }
 
       if ($fault) {
-        $fault = "Object in index '$i' id '".$real->{id}."' for '".$real->{$identifyingKey}."', key '$k'. Expected '$eVal', got '$rVal'";
-        last;
+        push(@faults, "Object in index '$i' id '".$real->{id}."' for '".$real->{$identifyingKey}."', key '$k'. Expected '$eVal', got '$rVal'");
+        $fault=0;
       }
     }
-    last if $fault;
   }
-  is($fault || 'No problems', 'No problems', 'Then all objects are what is expected');
+  is((@faults ? "testArrayToHash() failed:\n".join("\n", @faults) : 'No problems'), 'No problems', 'Then all objects are what is expected');
 }
 
 1;

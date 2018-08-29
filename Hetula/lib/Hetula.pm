@@ -194,7 +194,7 @@ sub getPermissionFromRouteString {
   return undef if $verb eq 'options';
   $routeString =~ s!^/api/v[^/]+/?!!;  #Remove api base path
   $routeString =~ s!/!-!g;             #Substitute / with -
-  $routeString =~ s!\(.*\)!!;          #Remove placeholders
+  $routeString =~ s![<(].+?[)>]!id!;   #Substitute placeholders with id, to make the permission read more fluently and differentiate between "list all" and "get one" -actions
   $routeString =~ s!-$!!;              #Remove trailing -
   return undef unless $routeString;
   return "$routeString-$verb";

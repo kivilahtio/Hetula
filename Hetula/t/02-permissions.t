@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::More;
+use Test::More tests => 2;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -22,6 +22,7 @@ use DateTime::Format::ISO8601;
 
 
 subtest "Api V1 verify default route permissions", sub {
+  plan tests => 5;
   my ($body, $id) = @_;
   t::lib::Auth::doPasswordLogin($t);
 
@@ -37,14 +38,19 @@ subtest "Api V1 verify default route permissions", sub {
     [qr/^\d+$/, 'auth-get',     undef, undef],
     [qr/^\d+$/, 'auth-post',    undef, undef],
     [qr/^\d+$/, 'logs-get',     undef, undef],
-    [],[],[],[],[],[],[],[],[],[],[],[],[],[],
-    [],[],
+    [],[],[],[],[],[],[],[],[],[],[],[],[],[],[],
+    [qr/^\d+$/, 'users-get',       undef, undef],
+    [qr/^\d+$/, 'users-id-delete', undef, undef],
+    [qr/^\d+$/, 'users-id-get',    undef, undef],
+    [qr/^\d+$/, 'users-id-put',    undef, undef],
+    [qr/^\d+$/, 'users-post',      undef, undef],
   ];
   t::lib::U::testPermissions($expected, $permissions);
 };
 
 
 subtest "Api V1 CRUD permissions happy path", sub {
+  plan tests => 23;
   my ($body, $id) = @_;
   t::lib::Auth::doPasswordLogin($t);
 
