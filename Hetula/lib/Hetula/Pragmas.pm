@@ -30,9 +30,9 @@ sub import {
   my %args = map {$_ => 1} @_;
 
   #Pragmas
-  Modern::Perl->import::into($target, '2015');
+  Modern::Perl->import::into($target, '2018');
   utf8->import::into($target); #This file and all Strings within are utf8-encoded
-  Carp::Always::Color->import::into($target);
+  Carp::Always->import::into($target);
   experimental->import::into($target, 'smartmatch', 'signatures');
   English->import::into($target);
   Try::Tiny->import::into($target);
@@ -45,6 +45,7 @@ sub import {
 
   #Local modules
   Hetula::Schema->import::into($target) unless $args{'no-schema'};
+  Hetula::Config->import::into($target);
   Hetula::Logger->import::into($target);
 }
 

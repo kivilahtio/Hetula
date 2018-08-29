@@ -34,7 +34,7 @@ sub populateDB($app) {
   }
   my $admin;
   try {
-    $admin = Hetula::Users::getUser({id => 1})
+    $admin = Hetula::Users::getAdmin()
   } catch {
     $_->rethrow unless (blessed($_) && $_->isa('Hetula::Exception::User::NotFound'));
   };

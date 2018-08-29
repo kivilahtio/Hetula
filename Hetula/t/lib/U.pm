@@ -73,6 +73,7 @@ sub testPermissions {
 }
 
 sub testArrayToHash {
+  $DB::single=1;
   my ($expectedArrays, $realHashes, $keyToIndex, $identifyingKey) = @_;
   my $ymd = DateTime->now()->ymd('-');
 
@@ -94,7 +95,7 @@ sub testArrayToHash {
         if (ref($eVal) eq 'Regexp') {
           $fault = 1 unless ($rVal =~ $eVal);
         } else {
-          unless ($rVal // '' eq $eVal // '') {
+          unless (($rVal // '') eq ($eVal // '')) {
             $fault = 1;
           }
         }

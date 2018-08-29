@@ -40,9 +40,6 @@ sub startup {
   my $self = shift;
   my $mode = $self->mode;
 
-  $self->validateEnvironment();
-  $self->checkTimezone();
-
   # Forward error messages to the application log
   Mojo::IOLoop->singleton->reactor->on(error => sub {
     my ($reactor, $err) = @_;
@@ -52,15 +49,15 @@ sub startup {
   # Documentation browser under "/perldoc"
   $self->plugin('PODRenderer');
 
-  my $config = $self->getConfig();
-  $self->log( MojoX::Log::Log4perl->new( $self->getLog4perlConfig() ) );
+  my ($hetulaConfig, $log4perlConfig) = Hetula::Config::loadConfigs();
+  $self->plugin(Config => {file => $hetulaConfig});
+  $self->log(MojoX::Log::Log4perl->new($log4perlConfig));
   $self->log->info('Initialized MojoX::Log::Log4perl');
 
   $self->sessions->cookie_name('PaStor');
-  $self->sessions->default_expiration($config->{session_expiration});
-  $self->secrets([$config->{secret}]);
+  $self->sessions->default_expiration($self->config->{session_expiration});
+  $self->secrets([$self->config->{secret}]);
 
-  Hetula::Schema::SetConfig($config);
   Hetula::Schema::isDBOk();
   Hetula::Schema::DefaultDB::populateDB($self);
 
@@ -100,104 +97,6 @@ sub startup {
   #When testing, we use a in-memory DB accessible only by the DB connection created by Hetula::Schema::DefaultDB::createDB();
   #We cannot lose this connection or we lose the test DB.
   Hetula::Schema::flushConnections() unless ($mode eq 'testing');
-}
-
-=head2 checkTimezone
-
-Sets $ENV{TZ} for DateTime to properly do timezone calculations
-
-=cut
-
-sub checkTimezone {
-  my ($self) = @_;
-
-  my $env = $ENV{TZ};
-  unless($env) {
-    my $tz = `date +%z`;
-    unless ($tz) {
-      Hetula::Exception::TimeZone->throw(error => "checkTimezone():> Couldn't infer the correct timezone from \$ENV{TZ} or `date +%z`. You must set your system timezone");
-    }
-    $ENV{TZ} = $tz;
-  }
-}
-
-=head2 getLog4perlConfig
-
-=cut
-
-sub getLog4perlConfig {
-  my ($self) = @_;
-  return $self->_getConfig('log4perl.conf');
-}
-
-=head2 getConfig
-
-=cut
-
-sub getConfig {
-  my ($self) = @_;
-  my $config = $self->plugin(Config => {file => $self->_getConfig('hetula.conf')});
-  return validateConfig($self, $config);
-}
-
-=head2 validateConfig
-
-Check that configuration options are properly given
-
-=cut
-
-sub validateConfig {
-  my ($self, $config) = (@_);
-
-  my $prologue = "Configuration parameter ";
-  my @mandatoryConfig = (qw(session_expiration secret));
-  foreach my $mc (@mandatoryConfig) {
-    die "$prologue '$mc' is not defined" unless ($config->{$mc});
-  }
-  return $config;
-}
-
-=head3 _getConfig
-
-Does it's best to find the correct configuration file from different operational modes
-'testing'|something_else
-
- @returns String, path to the given config file from the current operational mode.
- @throws Hetula::Exception::Environment, if the config file is not accessible.
-
-=cut
-
-sub _getConfig {
-  my ($self, $filename) = @_;
-  my $filepath = $ENV{HETULA_CONFIGS}.'/'.$filename.'-'.$self->mode;
-  if (! -r $filepath) {
-    Hetula::Exception::Environment->throw(error => "Configuration file '$filepath' is not readable by the current user '".$ENV{LOGNAME} || $ENV{USER} || getpwuid($<)."'");
-  }
-  return $filepath;
-}
-
-=head2 validateEnvironment
-
-Make sure the expected environment variables do exist
-
-Output a short summary about environment variables that can be used and are in use
-
-=cut
-
-sub validateEnvironment {
-  my ($self) = @_;
-
-  my @sb;
-  push(@sb, "Available environment variables:");
-  push(@sb, "TZ=".($ENV{TZ} // '').", sets the time zone. Defaults to 'date +%z'");
-  push(@sb, "HETULA_CONFIGS=".($ENV{HETULA_CONFIGS} // '').", where the Hetula configuration files are located");
-
-  if (! $ENV{HETULA_CONFIGS}) {
-    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_CONFIGS is not defined!");
-  }
-  elsif(! -d $ENV{HETULA_CONFIGS}) {
-    Hetula::Exception::Environment->throw(error => "Environment variable HETULA_CONFIGS='".$ENV{HETULA_CONFIGS}."' must point to a directory!");
-  }
 }
 
 =head2 createPermissions

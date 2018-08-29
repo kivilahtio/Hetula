@@ -105,7 +105,13 @@ sub isDBOk() {
     $dbVersion = $migration->dbic_dh->database_version();
   }
   else {
-    Hetula::Exception::Database::Missing->throw(error => "Database is missing. Install it with 'dbic-migrate install'");
+    eval {
+      $migration->install_if_needed();
+      $dbVersion = $migration->dbic_dh->database_version();
+    };
+    if ($@) {
+      Hetula::Exception::Database::Missing->throw(error => "Database is missing. Unable to deploy it automatically, error:\n $@\nInstall it with 'dbic-migrate install'");
+    }
   }
 }
 

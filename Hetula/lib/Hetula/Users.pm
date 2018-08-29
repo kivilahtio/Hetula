@@ -45,6 +45,20 @@ sub getUser {
   return $user;
 }
 
+=head2 getAdmin
+
+@RETURNS Hetula::Schema::Result::User
+@THROWS Hetula::Exception::User::NotFound
+
+=cut
+
+sub getAdmin() {
+  my $rs = Hetula::Schema::schema()->resultset('User');
+  my $user = $rs->find({id => 1});
+  Hetula::Exception::User::NotFound->throw(error => 'No admin found!?') unless $user;
+  return $user;
+}
+
 =head2 getFullUser
 
 @RETURNS Hetula::Schema::Result::User, with Organizations and Permissions prefetched

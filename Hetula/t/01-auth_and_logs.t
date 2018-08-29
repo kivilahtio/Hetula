@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::More;
+use Test::More tests => 6;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -24,13 +24,14 @@ use Hetula::Users;
 
 
 subtest "Api V1 auth happy path", sub {
+  plan tests => 16;
   my ($cookies, $sessionCookie, $csrfHeader, $login);
 
   #This is duplicated in t::lib::Auth::doPasswordLogin(), login using doPasswordLogin() in other test cases instead of manually duplicating this.
   ok(1, 'When authenticating with proper credentials');
   $login = {
-    username => 'admin',
-    password => '1234',
+    username => $t->app->config->{admin_name},
+    password => $t->app->config->{admin_pass},
     organization => 'Vaara'
   };
   $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
@@ -67,9 +68,10 @@ subtest "Api V1 auth happy path", sub {
 
 
 subtest "Api V1 max_failed_login_count", sub {
+  plan tests => 13;
   my ($login);
   $login = {
-    username => 'admin',
+    username => $t->app->config->{admin_name},
     password => 'bad-pass-word-d',
     organization => 'Vaara'
   };
@@ -90,7 +92,7 @@ subtest "Api V1 max_failed_login_count", sub {
     ->content_like(qr!Hetula::Exception::Auth::AccountBlocked!, 'Hetula::Exception::Auth::AccountBlocked received');
   t::lib::U::debugResponse($t);
 
-  ok(Hetula::Users::getUser({username => 'admin'})->unblockLogin(),
+  ok(Hetula::Users::getAdmin()->unblockLogin(),
                         'When the user is unblocked');
 
   $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
@@ -101,6 +103,7 @@ subtest "Api V1 max_failed_login_count", sub {
 
 
 subtest "Api V1 unknown user", sub {
+  plan tests => 3;
   my ($login);
   $login = {
     username => 'naku-admin',
@@ -115,10 +118,11 @@ subtest "Api V1 unknown user", sub {
 
 
 subtest "Api V1 unknown organization", sub {
+  plan tests => 3;
   my ($login);
   $login = {
-    username => 'admin',
-    password => '1234',
+    username => $t->app->config->{admin_name},
+    password => $t->app->config->{admin_pass},
     organization => 'Magic mushroom land',
   };
   $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
@@ -129,10 +133,8 @@ subtest "Api V1 unknown organization", sub {
 
 
 subtest "Api V1 no permission", sub {
+  plan tests => 20;
   my ($nakuadmin, $nakulogin);
-  eval {
-
-
 
   ok(1, 'Scenario: User with no permissions tries to do stuff');
   $nakuadmin = Hetula::Users::createUser({
@@ -181,15 +183,15 @@ subtest "Api V1 no permission", sub {
     ->status_is(403, 'Then he doesn\'t have permissions to do that')
     ->content_like(qr!Hetula::Exception::Auth::Authorization!, 'Hetula::Exception::Auth::Authorization received');
   t::lib::U::debugResponse($t);
-
-  };
-  ok(0, $@) if $@;
 };
 
 
 subtest "Api V1 check logs", sub {
+  plan tests => 12;
   my ($logs, $url, $expectedLogs);
-  sleep 1; #Make sure the current second changes so we dont acidentally mix previous log entries.
+  my $vaara = Hetula::Organizations::getOrganization({name => 'Vaara'});
+  my $lumme = Hetula::Organizations::getOrganization({name => 'Lumme'});
+  sleep 1; #Make sure the current second changes so we dont accidentally mix previous log entries.
   #Since fetching logs is logged and the following login, we can test the time limits for following actions
   my $startOfSubtest = DateTime->now();
   t::lib::Auth::doPasswordLogin($t, {organization => 'Lumme'});
@@ -202,19 +204,19 @@ subtest "Api V1 check logs", sub {
   t::lib::U::debugResponse($t);
   $logs = $t->tx->res->json;
   $expectedLogs = [
-    #id userid organizationid request       description ip      updatetime
-    [1,  1, 1,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [2,  1, 1,   '204 GET /api/v1/auth',    undef, '127.0.0.1', undef],
-    [3,  1, 1,   '204 DELETE /api/v1/auth', undef, '127.0.0.1', undef],
-    [4,  '', '', '404 GET /api/v1/auth',    undef, '127.0.0.1', undef],
-    [5,  1, 1,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [6,  1, 1,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [7,  1, '',  '403 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [8,  1, 1,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [9,  '', '', '404 POST /api/v1/auth', qr/^Hetula::Exception::User::NotFound/, '127.0.0.1', undef],
-    [10, 1, '',   '404 POST /api/v1/auth', qr/^Hetula::Exception::Organization::NotFound/, '127.0.0.1', undef],
+    #   id   userid organizationid     request            description    ip    updatetime
+    [qr/^\d+$/, 1,  $vaara->id,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  $vaara->id,   '204 GET /api/v1/auth',    undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  $vaara->id,   '204 DELETE /api/v1/auth', undef, '127.0.0.1', undef],
+    [qr/^\d+$/, '', '',           '404 GET /api/v1/auth',    undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  '',           '403 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [qr/^\d+$/, '', '',           '404 POST /api/v1/auth', qr/^Hetula::Exception::User::NotFound/, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  '',           '404 POST /api/v1/auth', qr/^Hetula::Exception::Organization::NotFound/, '127.0.0.1', undef],
     [],[],[],[],[],
-    [16, 1, 3,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  $lumme->id,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
   ];
   t::lib::U::testLogs($expectedLogs, $logs);
 
@@ -227,15 +229,15 @@ subtest "Api V1 check logs", sub {
   t::lib::U::debugResponse($t);
   $logs = $t->tx->res->json;
   $expectedLogs = [
-    #id userid organizationid request          description ip           updatetime
-    [16,  1, 3,   '201 POST /api/v1/auth',          undef, '127.0.0.1', undef],
-    [17,  1, 3,   qr!^\Q200 GET /api/v1/logs?until=\E!, undef, '127.0.0.1', undef],
+    #   id   userid organizationid      request                     description    ip    updatetime
+    [qr/^\d+$/, 1, $lumme->id,   '201 POST /api/v1/auth',              undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1, $lumme->id,   qr!^\Q200 GET /api/v1/logs?until=\E!, undef, '127.0.0.1', undef],
   ];
   t::lib::U::testLogs($expectedLogs, $logs);
 
 
   $url = Mojo::URL->new('/api/v1/logs')->query({
-    organizationid => 3,
+    organizationid => $lumme->id,
   });
   $t->get_ok($url)
     ->status_is(200, 'When all logs for organization "Lumme" are fetched');

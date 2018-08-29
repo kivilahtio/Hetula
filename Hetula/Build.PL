@@ -82,7 +82,7 @@ $class->new(
 
   },
   requires => {
-    'Carp::Always::Color'               => '> 0.01',
+    'Carp::Always'                      => '> 0.01',
     'DateTime'                          => '> 0.01',
     'DateTime::Format::ISO8601'         => '> 0.01',
     'DBIx::Class'                       => '> 0.01',

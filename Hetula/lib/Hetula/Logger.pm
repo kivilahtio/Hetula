@@ -1,6 +1,6 @@
 package Hetula::Logger;
 
-use Carp::Always::Color;
+#use Carp::Always::Color; #This causes a deep recursion inside Mojolicious internals
 use Scalar::Util qw(blessed);
 
 # Copyright (C) 2018 National Library of Finland
