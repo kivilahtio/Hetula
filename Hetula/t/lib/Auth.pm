@@ -21,7 +21,7 @@ sub doPasswordLogin {
   my $login = {
     username => $args->{username} || Hetula::Config::admin_name(),
     password => $args->{password} || Hetula::Config::admin_pass(),
-    organization => $args->{organization} || 'Vaara',
+    organization => $args->{organization} || Hetula::Config::admin_organization(),
   };
   Hetula::Users::getUser({username => $login->{username}})->unblockLogin();
 

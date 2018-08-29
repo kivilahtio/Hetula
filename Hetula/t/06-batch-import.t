@@ -27,7 +27,7 @@ subtest "Api V1 Batch import a small batch of ssns", sub {
   plan tests => 33;
   my ($ssnBatch, $body, $r) = @_;
 
-  t::lib::Auth::doPasswordLogin($t);
+  t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'});
 
   $ssnBatch = randomSsnBatch(4);
   ok(1, 'Given a small batch of ssns');

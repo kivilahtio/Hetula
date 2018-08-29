@@ -174,6 +174,15 @@ sub admin_pass($val=undef) {
   return $config->{admin_pass};
 }
 
+=head2 admin_organization
+
+=cut
+
+sub admin_organization($val=undef) {
+  $config->{admin_organization} = $val if $val;
+  return $config->{admin_organization};
+}
+
 =head2 session_expiration
 
 =cut

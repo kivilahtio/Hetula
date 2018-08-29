@@ -32,12 +32,13 @@ subtest "Api V1 CRUD organizations happy path", sub {
     ->status_is(200, 'Then all the organizations are returned');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
-  is(scalar(@{$body}), 4, 'And got all organizations');
-  is($body->[0]->{name}, 'Lappi', 'And the organizations are alphabetically sorted 1');
-  is($body->[1]->{name}, 'Lumme', 'And the organizations are alphabetically sorted 2');
-  is($body->[2]->{name}, 'Outi',  'And the organizations are alphabetically sorted 3');
-  is($body->[3]->{name}, 'Vaara', 'And the organizations are alphabetically sorted 4');
-  ok($body->[3]->{id},            'And a organization has an id');
+  is(scalar(@{$body}), 5, 'And got all organizations');
+  my @nonAdminOrganizations = grep {$_->{name} ne Hetula::Config::admin_organization()} @$body; #Remove the admin_organization which is automatically created, because it is impossible to predict what it will be and how it relates to the sort order.
+  is($nonAdminOrganizations[0]->{name}, 'Lappi', 'And the organizations are alphabetically sorted 1');
+  is($nonAdminOrganizations[1]->{name}, 'Lumme', 'And the organizations are alphabetically sorted 2');
+  is($nonAdminOrganizations[2]->{name}, 'Outi',  'And the organizations are alphabetically sorted 3');
+  is($nonAdminOrganizations[3]->{name}, 'Vaara', 'And the organizations are alphabetically sorted 4');
+  ok($nonAdminOrganizations[3]->{id},            'And a organization has an id');
   ok(DateTime::Format::ISO8601->parse_datetime($body->[3]->{createtime}),
                                                    'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->[3]->{updatetime}),
