@@ -2,6 +2,7 @@ use 5.22.0;
 use Module::Build;
 
 use Cwd;
+use File::Copy;
 
 my $class = Module::Build->subclass(
   class => "Module::Build::Custom",
@@ -12,56 +13,102 @@ sub ACTION_install {
   $self->SUPER::ACTION_install;
 
   my $systemdServiceFile = '/etc/systemd/system/hetula.service';
+  my $HETULA_HOME = Cwd::getcwd().'/'; #Build.PL is in the root of the program directory, Module::Build normalizes cwd to point to the root of the app.
+  my $HETULA_CONFIGS = '/etc/hetula/';
+  my $HETULA_USER = 'hetula';
 
-  ###Add the hetula-user###
-  my $userExists = `/bin/grep -P 'hetula' /etc/passwd`;
-  unless ($userExists) {
-    $self->log_info( "Adding user 'hetula'\n" );
-    $self->do_system( '/usr/sbin/useradd hetula' ) unless $userExists;
-  }
-  else {
-    $self->log_info( "User 'hetula' exists\n" );
-  }
 
-  ###Install systemd service and system config file
-  require File::Copy;
-  $self->log_info( "Deploying the 'hetula'-service\n" );
-  File::Copy::copy('etc/systemd/system/hetula.service', $systemdServiceFile);
-  unless (-d '/etc/hetula') {
-    $self->log_info( "Creating '/etc/hetula'\n" );
-    mkdir '/etc/hetula';
-  }
-  unless (-e '/etc/hetula/hetula.conf') {
-    $self->log_info( "Creating '/etc/hetula/hetula.conf'\n" );
-    File::Copy::copy('config/hetula.conf', '/etc/hetula/hetula.conf');
-  }
-  else {
-    $self->log_info( "'/etc/hetula/hetula.conf' exists\n" );
-  }
-  unless (-e '/etc/hetula/log4perl.conf') {
-    $self->log_info( "Creating '/etc/hetula/log4perl.conf'\n" );
-    File::Copy::copy('config/log4perl.conf', '/etc/hetula/log4perl.conf');
-  }
-  else {
-    $self->log_info( "'/etc/hetula/log4perl.conf' exists\n" );
-  }
+  ###########################
+  ### Set the environment ###
+  ###########################
 
-  my $HETULA_HOME = Cwd::getcwd();
-  $self->log_info( "Setting HETULA_HOME=$HETULA_HOME environment variable" );
+  $self->log_info( "Setting HETULA_HOME=$HETULA_HOME\n" );
   my $cmd = "(grep -P '^HETULA_HOME' /etc/environment && sed -i 's!^HETULA_HOME.*\$!HETULA_HOME=$HETULA_HOME!' /etc/environment) || echo 'HETULA_HOME=$HETULA_HOME' >> /etc/environment";
   $self->do_system( $cmd );
-  $cmd = "sed -i 's!^ExecStart=/.*/script/hetula!ExecStart=$HETULA_HOME/script/hetula!' $systemdServiceFile";
+
+  $self->log_info( "Setting HETULA_CONFIGS=$HETULA_CONFIGS\n" );
+  $cmd = "(grep -P '^HETULA_CONFIGS' /etc/environment && sed -i 's!^HETULA_CONFIGS.*\$!HETULA_CONFIGS=$HETULA_CONFIGS!' /etc/environment) || echo 'HETULA_CONFIGS=$HETULA_CONFIGS' >> /etc/environment";
+  $self->do_system( $cmd );
+
+
+  ###########################
+  ### Add the hetula-user ###
+  ###########################
+
+  my $userExists = `/bin/grep -P '$HETULA_USER' /etc/passwd`;
+  unless ($userExists) {
+    $self->log_info( "Adding user '$HETULA_USER'\n" );
+    $self->do_system( '/usr/sbin/useradd $HETULA_USER' ) unless $userExists;
+  }
+  else {
+    $self->log_info( "User '$HETULA_USER' exists\n" );
+  }
+
+
+  ###################################
+  ### Install system config files ###
+  ###################################
+
+  unless (-d $HETULA_CONFIGS) {
+    $self->log_info( "Creating $HETULA_CONFIGS\n" );
+    mkdir $HETULA_CONFIGS;
+  }
+  unless (-e "$HETULA_CONFIGS/hetula.conf-production") {
+    $self->log_info( "Creating '$HETULA_CONFIGS/hetula.conf'\n" );
+    File::Copy::copy('config/hetula.conf', "$HETULA_CONFIGS/hetula.conf-production");
+    File::Copy::copy('config/hetula.conf', "$HETULA_CONFIGS/hetula.conf-testing");
+  }
+  else {
+    $self->log_info( "'$HETULA_CONFIGS/hetula.conf' exists\n" );
+  }
+  unless (-e "$HETULA_CONFIGS/log4perl.conf-production") {
+    $self->log_info( "Creating '$HETULA_CONFIGS/log4perl.conf'\n" );
+    File::Copy::copy('config/log4perl.conf', "$HETULA_CONFIGS/log4perl.conf-production");
+    File::Copy::copy('config/log4perl.conf', "$HETULA_CONFIGS/log4perl.conf-testing");
+  }
+  else {
+    $self->log_info( "'$HETULA_CONFIGS/log4perl.conf' exists\n" );
+  }
+
+
+  ###############################
+  ### Install systemd service ###
+  ###############################
+
+  $self->log_info( "Deploying the 'hetula'-service\n" );
+  File::Copy::copy('etc/systemd/system/hetula.service', $systemdServiceFile);
+
+  $self->log_info( "Rewriting systemd unit file paths\n" );
+  $cmd = "sed -i 's!\${HETULA_HOME}!$HETULA_HOME!' $systemdServiceFile";
+  $self->do_system( $cmd );
+  $cmd = "sed -i 's!\${HETULA_CONFIGS}!$HETULA_CONFIGS!' $systemdServiceFile";
   $self->do_system( $cmd );
 
   $self->log_info( "Enabling 'hetula'-service\n" );
   $self->do_system( '/bin/systemctl daemon-reload' );
   $self->do_system( '/bin/systemctl enable hetula' );
+
+
+  ##############################################
+  ### Show manual configuration instructions ###
+  ##############################################
+
+  print "\n";
+  print "Hetula has been installed.\n";
+  print "To be able to test and run Hetula in production, you must configure the configuration files for different modes of operation.\n";
+  print "Configuration files are installed into '$HETULA_CONFIGS'.\n";
+  print "\n";
+  print "After configuring $HETULA_CONFIGS/hetula.conf-testing, run ./Build test to make sure your Hetula-instance works correctly in your environment.\n";
+  print "If everything passes, you are ready for production.\n";
+  print "\n";
 }
 
 sub ACTION_test {
   my $self = shift;
 
-  $self->do_system( '/usr/bin/prove -Ilib t' );
+  die "Environment variable HETULA_CONFIGS not set, have you installed and configured hetula.conf-testing first?" unless $ENV{HETULA_CONFIGS};
+
+  $self->do_system( '/usr/bin/prove -I. -Ilib t' );
 }
 
 sub ACTION_commit {

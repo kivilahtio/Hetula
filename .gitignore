@@ -30,4 +30,4 @@ blib
 *.vstags
 share/hetula-schema/*
 share/hetula-schema.db
-
+hypnotoad.pid
