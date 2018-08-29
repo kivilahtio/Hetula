@@ -566,6 +566,8 @@ paths:
           description: Modified
           schema:
             $ref: '#/definitions/user'
+        404:
+          description: User or related permission/organization is not found.
     delete:
       summary: Delete a user
       x-mojo-to: Users#delete

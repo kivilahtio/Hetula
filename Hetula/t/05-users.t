@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::More;
+use Test::More tests => 5;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -19,16 +19,18 @@ my $t = t::lib::TestContext::set();
 ###  START TESTING  ###
 
 use DateTime::Format::ISO8601;
-use Encode qw(encode_utf8);
 use Hetula::Organizations;
+use Hetula::Users;
+use Hetula::Permissions;
 
 
-subtest "Api V1 CRUD users happy path", sub {
+subtest "Scenario: Api V1 CRUD users happy path", sub {
+  plan tests => 27;
   my ($body, $pertti, $id) = @_;
   t::lib::Auth::doPasswordLogin($t);
 
 
-  ok(1, encode_utf8('When POSTing a new User "Pertti Peräsmies"'));
+  ok(1, 'When POSTing a new User "Pertti Peräsmies"');
   $pertti = {
     username => 'pp',
     password => 'pp699',
@@ -50,7 +52,7 @@ subtest "Api V1 CRUD users happy path", sub {
   $id = $body->{id};
 
 
-  ok(1, encode_utf8('When GETting Mr. Peräsmies'));
+  ok(1, 'When GETting Mr. Peräsmies');
   $t->get_ok("/api/v1/users/$id")
     ->status_is(200, 'Then the user is returned');
   t::lib::U::debugResponse($t);
@@ -65,7 +67,7 @@ subtest "Api V1 CRUD users happy path", sub {
   is($body->{id}, $id,       'And the id is ok');
 
 
-  ok(1, encode_utf8('When DELETEing Mr. Peräsmies'));
+  ok(1, 'When DELETEing Mr. Peräsmies');
   $t->delete_ok("/api/v1/users/$id")
     ->status_is(204, 'Then the User is deleted');
   t::lib::U::debugResponse($t);
@@ -84,12 +86,41 @@ subtest "Api V1 CRUD users happy path", sub {
 
 
 
-subtest "Api V1 CRUD users' permissions", sub {
+subtest "Scenario: Api V1 users - PUT bad permissions and rollback partial changes", sub {
+  plan tests => 7;
+
+  my ($body, $user, $newData, $id) = @_;
+  t::lib::Auth::doPasswordLogin($t);
+
+  ok(1, 'When PUTing partially bad permissions and modifying user attributes');
+  $newData = {
+    username => 'rollback',
+    realname => 'To be rolled back modification',
+    permissions => [
+      'non-existing-permission',
+      'users-get',
+    ],
+  };
+  $t->put_ok("/api/v1/users/1" => {Accept => '*/*'} => json => $newData)
+    ->status_is(404, "Then setting user's permissions fails")
+    ->content_like(qr!Hetula::Exception::Permission::NotFound!, 'And the content contains the correct Hetula::Exception::Permission::NotFound exception')
+    ->content_like(qr!non-existing-permission!,                 'And the content contains the correct missing permission');
+  t::lib::U::debugResponse($t);
+
+  $user = Hetula::Users::getAdmin();
+  is(Hetula::Config::admin_name(), $user->username, 'And changes to username are rolled back');
+  is(scalar(@{Hetula::Permissions::listPermissions()}), $user->permissions()->count(), 'And the admin still has all the permissions');
+};
+
+
+
+subtest "Scenario: Api V1 CRUD users' permissions", sub {
+  plan tests => 18;
   my ($body, $maija, $id) = @_;
   t::lib::Auth::doPasswordLogin($t);
 
 
-  ok(1, encode_utf8('When POSTing a new User "Maija Meikäläinen"'));
+  ok(1, 'When POSTing a new User "Maija Meikäläinen"');
   $maija = {
     username => 'mm',
     password => 'majtsu',
@@ -106,12 +137,12 @@ subtest "Api V1 CRUD users' permissions", sub {
   ok($id, 'And has an id');
 
 
-  ok(1, encode_utf8('When PUTing permissions as keys to "Maija Meikäläinen"'));
+  ok(1, 'When PUTing permissions as keys to "Maija Meikäläinen"');
   $maija = {
     username => 'mm',
     realname => 'Meikäläinen, Maija',
     permissions => [
-      'users-delete',
+      'users-id-delete',
       'users-get',
     ],
   };
@@ -120,11 +151,11 @@ subtest "Api V1 CRUD users' permissions", sub {
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   ok($body->{permissions}, 'And has permissions-attribute');
-  is($body->{permissions}->[0], 'users-delete', 'And the permission names are sorted alphabetically 1');
-  is($body->{permissions}->[1], 'users-get',    'And the permission names are sorted alphabetically 2');
+  is($body->{permissions}->[0], 'users-get',       'And the permission names are sorted alphabetically 2');
+  is($body->{permissions}->[1], 'users-id-delete', 'And the permission names are sorted alphabetically 1');
 
 
-  ok(1, encode_utf8('When PUTing overlapping permissions as keys to "Maija Meikäläinen"'));
+  ok(1, 'When PUTing overlapping permissions as keys to "Maija Meikäläinen"');
   $maija = {
     username => 'mm',
     realname => 'Meikäläinen, Maija',
@@ -144,12 +175,41 @@ subtest "Api V1 CRUD users' permissions", sub {
 
 
 
+subtest "Scenario: Api V1 users - PUT bad organizations and rollback partial changes", sub {
+  plan tests => 7;
+
+  my ($body, $user, $newData, $id) = @_;
+  t::lib::Auth::doPasswordLogin($t);
+
+  ok(1, 'When PUTing partially bad organizations and modifying user attributes');
+  $newData = {
+    username => 'rollback',
+    realname => 'To be rolled back modification',
+    organizations => [
+      'non-existing-organization',
+      'magic-mushroom-land',
+    ],
+  };
+  $t->put_ok("/api/v1/users/1" => {Accept => '*/*'} => json => $newData)
+    ->status_is(404, "Then setting user's organizations fails")
+    ->content_like(qr!Hetula::Exception::Organization::NotFound!,      'And the content contains the correct Hetula::Exception::Organization::NotFound exception')
+    ->content_like(qr!non-existing-organization magic-mushroom-land!,  'And the content contains the correct missing permission');
+  t::lib::U::debugResponse($t);
+
+  $user = Hetula::Users::getAdmin();
+  is(Hetula::Config::admin_name(), $user->username, 'And changes to username are rolled back');
+  is(scalar(@{Hetula::Permissions::listPermissions()}), $user->permissions()->count(), 'And the admin still has all the permissions');
+};
+
+
+
 subtest "Api V1 CRUD users' organizations", sub {
+  plan tests => 21;
   my ($body, $äijä, $id) = @_;
   t::lib::Auth::doPasswordLogin($t);
 
 
-  ok(1, encode_utf8('When POSTing a new User "Pää-Äijä"'));
+  ok(1, 'When POSTing a new User "Pää-Äijä"');
   $äijä = {
     username => 'pa',
     password => 'äijät',
@@ -170,7 +230,7 @@ subtest "Api V1 CRUD users' organizations", sub {
   ok($id, 'And has an id');
 
 
-  ok(1, encode_utf8('When PUTing overlapping organizations to "Pää-Äijä"'));
+  ok(1, 'When PUTing overlapping organizations to "Pää-Äijä"');
   $äijä = {
     username => 'pa',
     realname => 'Pää-Äijä',
@@ -189,7 +249,7 @@ subtest "Api V1 CRUD users' organizations", sub {
   is(scalar(@{$body->{organizations}}), 2, 'And the old organization is no longer on the list');
 
 
-  ok(1, encode_utf8('When GETing "Pää-Äijä"'));
+  ok(1, 'When GETing "Pää-Äijä"');
   $t->get_ok("/api/v1/users/$id")
     ->status_is(200, 'Then a "Pää-Äijä" is retrieved');
   t::lib::U::debugResponse($t);

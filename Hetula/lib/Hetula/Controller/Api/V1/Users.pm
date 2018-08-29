@@ -58,7 +58,7 @@ sub put {
     return $c->render(status => 200, openapi => $u);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::User::NotFound');
+    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception') && ref($_) =~ /::NotFound/;
     return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::BadParameter');
     return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
   };

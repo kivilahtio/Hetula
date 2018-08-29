@@ -168,6 +168,10 @@ sub setPermissions {
   my ($self, $permissions) = @_;
 
   my @new = Hetula::Schema->schema->resultset('Permission')->search({name => {'-in' => $permissions}});
+  if (@$permissions != @new) {
+    my @missing = grep { my $p=$_; List::Util::none {$_->name eq $p} @new } @$permissions;
+    Hetula::Exception::Permission::NotFound->throw(error => "These given permissions '@missing' do not exist.");
+  }
   $self->set_permissions(\@new);
   return $self;
 }
@@ -183,6 +187,10 @@ sub setOrganizations {
   my ($self, $organizations) = @_;
 
   my @new = Hetula::Schema->schema->resultset('Organization')->search({name => {'-in' => $organizations}});
+  if (@$organizations != @new) {
+    my @missing = grep { my $o=$_; List::Util::none {$_->name ne $o} @new } @$organizations;
+    Hetula::Exception::Organization::NotFound->throw(error => "These given organizations '@missing' do not exist.");
+  }
   $self->set_organizations(\@new);
   return $self;
 }

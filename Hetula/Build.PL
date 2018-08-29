@@ -91,6 +91,7 @@ $class->new(
     'DBIx::Class::InflateColumn::Object::Enum' => '> 0.01',
     'Digest::SHA'                       => '> 0.01',
     'Import::Into'                      => '> 0.01',
+    'List::Util'                        => '> 0.01',
     'Log::Log4perl'                     => '> 0.01',
     'Mojolicious'                       => '> 0.01',
     'Mojolicious::Plugin::OpenAPI'      => '> 0.01',

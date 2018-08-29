@@ -42,6 +42,7 @@ sub import {
   Scalar::Util->import::into($target, 'blessed', 'weaken');
   Log::Log4perl->import::into($target);
   FindBin->import::into($target);
+  List::Util->import::into($target);
 
   #Local modules
   Hetula::Schema->import::into($target) unless $args{'no-schema'};

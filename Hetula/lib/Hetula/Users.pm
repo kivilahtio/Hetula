@@ -123,7 +123,9 @@ sub modUser {
   delete $user->{permissions};
   delete $user->{organizations};
 
-  $user->{password} = _hashPassword($user->{password});
+  my $guard = Hetula::Schema::schema()->txn_scope_guard; #Be ready to rollback if errors arise
+
+  $user->{password} = _hashPassword($user->{password}) if $user->{password};
   my $oldUser = _modUser($user);
 
   if ($permissions) {
@@ -133,6 +135,7 @@ sub modUser {
     $oldUser->setOrganizations($organizations);
   }
 
+  $guard->commit();
   return $oldUser;
 }
 
