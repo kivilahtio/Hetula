@@ -14,6 +14,8 @@ use Hetula::Pragmas;
 
 use Hetula::Exception::Environment;
 
+my $config; #Hetula config
+
 =head2 loadConfigs
 
 Loads and returns all known configuration filepaths
@@ -26,13 +28,14 @@ sub loadConfigs() {
   my $configPath = getConfig();
   my $log4perlConfigPath = getLog4perlConfig();
 
-  my $config = do $configPath;
+  my $hetulaConfig = do $configPath;
   die "couldn't parse $configPath: $@" if $@;
-  die "couldn't do $configPath: $!"    unless defined $config;
-  die "couldn't run $configPath"       unless $config;
-  validateConfig($config);
+  die "couldn't do $configPath: $!"    unless defined $hetulaConfig;
+  die "couldn't run $configPath"       unless $hetulaConfig;
+  validateConfig($hetulaConfig);
+  $config = $hetulaConfig;
 
-  Hetula::Schema::SetConfig($config);
+  Hetula::Schema::SetConfig($hetulaConfig);
   return ($configPath, $log4perlConfigPath);
 }
 
@@ -136,6 +139,138 @@ sub checkTimezone() {
     }
     $ENV{TZ} = $tz;
   }
+}
+
+=head1 Config accessors
+
+Typo-safely access config values
+
+=cut
+
+=head2 secret
+
+=cut
+
+sub secret($val=undef) {
+  $config->{secret} = $val if $val;
+  return $config->{secret};
+}
+
+=head2 admin_name
+
+=cut
+
+sub admin_name($val=undef) {
+  $config->{admin_name} = $val if $val;
+  return $config->{admin_name};
+}
+
+=head2 admin_pass
+
+=cut
+
+sub admin_pass($val=undef) {
+  $config->{admin_pass} = $val if $val;
+  return $config->{admin_pass};
+}
+
+=head2 session_expiration
+
+=cut
+
+sub session_expiration($val=undef) {
+  $config->{session_expiration} = $val if $val;
+  return $config->{session_expiration};
+}
+
+=head2 max_failed_login_count
+
+=cut
+
+sub max_failed_login_count($val=undef) {
+  $config->{max_failed_login_count} = $val if $val;
+  return $config->{max_failed_login_count};
+}
+
+=head2 db_driver
+
+=cut
+
+sub db_driver($val=undef) {
+  $config->{db_driver} = $val if $val;
+  return $config->{db_driver};
+}
+
+=head2 db_name
+
+=cut
+
+sub db_name($val=undef) {
+  $config->{db_name} = $val if $val;
+  return $config->{db_name};
+}
+
+=head2 db_host
+
+=cut
+
+sub db_host($val=undef) {
+  $config->{db_host} = $val if $val;
+  return $config->{db_host};
+}
+
+=head2 db_port
+
+=cut
+
+sub db_port($val=undef) {
+  $config->{db_port} = $val if $val;
+  return $config->{db_port};
+}
+
+=head2 db_user
+
+=cut
+
+sub db_user($val=undef) {
+  $config->{db_user} = $val if $val;
+  return $config->{db_user};
+}
+
+=head2 db_pass
+
+=cut
+
+sub db_pass($val=undef) {
+  $config->{db_pass} = $val if $val;
+  return $config->{db_pass};
+}
+
+=head2 db_socket
+
+=cut
+
+sub db_socket($val=undef) {
+  $config->{db_socket} = $val if $val;
+  return $config->{db_socket};
+}
+
+=head2 db_raise_error
+
+=cut
+
+sub db_raise_error($val=undef) {
+  $config->{db_raise_error} = $val if $val;
+  return $config->{db_raise_error};
+}
+
+=head2 db_print_error
+
+=cut
+
+sub db_print_error($val=undef) {
+  $config->{db_print_error} = $val if $val;
+  return $config->{db_print_error};
 }
 
 1;

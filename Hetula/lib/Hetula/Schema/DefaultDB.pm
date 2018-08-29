@@ -29,7 +29,7 @@ sub populateDB($app) {
   my ($schema) = Hetula::Schema::schema();
 
   #Upsert the admin user which has all the permissions
-  unless ($app->config->{admin_name} && $app->config->{admin_pass}) {
+  unless (Hetula::Config::admin_name() && Hetula::Config::admin_pass()) {
     Hetula::Exception::Auth::AccountBlocked->throw(error => "Hetula app configurations admin_name and admin_pass are undefined. Cannot create a default super administrator account.");
   }
   my $admin;
@@ -40,10 +40,10 @@ sub populateDB($app) {
   };
 
   unless ($admin) {
-    Hetula::Users::createUser({id => 1, username => $app->config->{admin_name}, realname => 'Super administrator account', password => $app->config->{admin_pass}});
+    Hetula::Users::createUser({id => 1, username => Hetula::Config::admin_name(), realname => 'Super administrator account', password => Hetula::Config::admin_pass()});
   }
   else {
-    Hetula::Users::modUser({id => 1, username => $app->config->{admin_name}, password => $app->config->{admin_pass}});
+    Hetula::Users::modUser({id => 1, username => Hetula::Config::admin_name(), password => Hetula::Config::admin_pass()});
   }
 }
 

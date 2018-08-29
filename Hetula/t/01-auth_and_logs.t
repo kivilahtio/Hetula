@@ -30,8 +30,8 @@ subtest "Api V1 auth happy path", sub {
   #This is duplicated in t::lib::Auth::doPasswordLogin(), login using doPasswordLogin() in other test cases instead of manually duplicating this.
   ok(1, 'When authenticating with proper credentials');
   $login = {
-    username => $t->app->config->{admin_name},
-    password => $t->app->config->{admin_pass},
+    username => Hetula::Config::admin_name(),
+    password => Hetula::Config::admin_pass(),
     organization => 'Vaara'
   };
   $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
@@ -71,11 +71,11 @@ subtest "Api V1 max_failed_login_count", sub {
   plan tests => 13;
   my ($login);
   $login = {
-    username => $t->app->config->{admin_name},
+    username => Hetula::Config::admin_name(),
     password => 'bad-pass-word-d',
     organization => 'Vaara'
   };
-  $t->app->config->{max_failed_login_count} = 2;
+  Hetula::Config::max_failed_login_count(2);
 
   $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)
     ->status_is(401, 'Bad password 1')
@@ -121,8 +121,8 @@ subtest "Api V1 unknown organization", sub {
   plan tests => 3;
   my ($login);
   $login = {
-    username => $t->app->config->{admin_name},
-    password => $t->app->config->{admin_pass},
+    username => Hetula::Config::admin_name(),
+    password => Hetula::Config::admin_pass(),
     organization => 'Magic mushroom land',
   };
   $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $login)

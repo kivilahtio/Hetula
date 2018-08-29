@@ -148,7 +148,7 @@ sub _passwordAuthentication {
 
 sub _checkFailedLoginCount {
   my ($c, $user) = @_;
-  unless ($user && $user->failed_login_count < $c->config->{max_failed_login_count} ) {
+  unless ($user && $user->failed_login_count < Hetula::Config::max_failed_login_count() ) {
     Hetula::Exception::Auth::AccountBlocked->throw(error => "Account has been frozen due to too many failed login attemps");
   }
 }

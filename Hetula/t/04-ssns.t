@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::More;
+use Test::More tests => 3;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -19,14 +19,13 @@ my $t = t::lib::TestContext::set();
 ###  START TESTING  ###
 
 use DateTime::Format::ISO8601;
-use Encode qw(encode_utf8);
 use Hetula::Ssns;
 
 
 
 subtest "Api V1 creating invalid ssns", sub {
+  plan tests => 19;
   my ($body) = @_;
-  eval {
 
   t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'});
 
@@ -61,16 +60,13 @@ subtest "Api V1 creating invalid ssns", sub {
   $body = $t->tx->res->text;
   ok($body =~ /Hetula::Exception::Ssn::Invalid/, 'And the returned error describes the validation error in detail');
   ok($body =~ /Given check character 'A'/,   'And the detail is specifically about a bad checksum');
-
-  };
-  ok(0, $@) if $@;
 };
 
 
 
 subtest "Api V1 CRUD ssns happy path", sub {
-  my ($body) = @_;
-  eval {
+  plan tests => 31;
+  my ($body, $ssnId) = @_;
 
   t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'});
 
@@ -81,12 +77,13 @@ subtest "Api V1 CRUD ssns happy path", sub {
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   is($body->{ssn}, '050928+4784', 'And the ssn is "050928+4784"');
-  is($body->{notes}, 'Ällikällä lyöty', encode_utf8('And the notes is "Ällikällä lyöty"'));
+  is($body->{notes}, 'Ällikällä lyöty', 'And the notes is "Ällikällä lyöty"');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{createtime}),
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
                              'And the updatetime is in ISO8601');
-  is($body->{id}, 1,         'And the id is 1');
+  ok($body->{id},            'And the id exists');
+  $ssnId = $body->{id};
 
 
   ok(1, 'When POSTing the ssn "050928+4784" again');
@@ -99,11 +96,11 @@ subtest "Api V1 CRUD ssns happy path", sub {
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
                              'And the updatetime is in ISO8601');
-  is($body->{id}, 1,         'And the id is 1');
+  ok($body->{id},            'And the id exists');
 
 
   ok(1, 'When GETting the ssn "050928+4784"');
-  $t->get_ok('/api/v1/ssns/1')
+  $t->get_ok("/api/v1/ssns/$ssnId")
     ->status_is(200, 'Then the ssn is returned');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
@@ -112,11 +109,11 @@ subtest "Api V1 CRUD ssns happy path", sub {
                              'And the createtime is in ISO8601');
   ok(DateTime::Format::ISO8601->parse_datetime($body->{updatetime}),
                              'And the updatetime is in ISO8601');
-  is($body->{id}, 1,         'And the id is 1');
+  ok($body->{id},            'And the id exists');
 
 
   ok(1, 'When DELETEing the "050928+4784"-ssn');
-  $t->delete_ok('/api/v1/ssns/1')
+  $t->delete_ok("/api/v1/ssns/$ssnId")
     ->status_is(204, 'Then the ssn is deleted');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->text;
@@ -124,22 +121,19 @@ subtest "Api V1 CRUD ssns happy path", sub {
 
 
   ok(1, 'When GETting the DELETEd ssn');
-  $t->get_ok('/api/v1/ssns/1')
+  $t->get_ok("/api/v1/ssns/$ssnId")
     ->status_is(404, 'Then the ssn is not found')
     ->content_like(qr!Hetula::Exception::Ssn::NotFound!, 'And the content contains the correct Hetula::Exception::Ssn::NotFound exception');
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   ok(not($body), 'And there is no json body');
-
-  };
-  ok(0, $@) if $@;
 };
 
 
 subtest "Api V1 multiple organizations access the same ssn", sub {
+  plan tests => 69;
   my ($body, $ssn, $id) = @_;
 
-  eval {
   ok(t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'}),
      'Given a login session from organization Vaara');
 
@@ -191,7 +185,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   is(scalar(@{$body->{organizations}}), 3, 'And there are no extra organizations on the list');
 
 
-  ok(1, encode_utf8('When DELETEing the ssn'));
+  ok(1, 'When DELETEing the ssn');
   $t->delete_ok("/api/v1/ssns/$id")
     ->status_is(204, "Then the Lappi-organization's ownership of the ssn is deleted");
   t::lib::U::debugResponse($t);
@@ -199,7 +193,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(not($body), 'And there is no content');
 
 
-  ok(1, encode_utf8('When GETing the deleted ssn'));
+  ok(1, 'When GETing the deleted ssn');
   $t->get_ok("/api/v1/ssns/$id")
     ->status_is(404, "Then the Lappi-organization no longer can get the ssn")
     ->content_like(qr!Hetula::Exception::Ssn::NotFound!, 'And the content contains the correct Hetula::Exception::Ssn::NotFound exception');
@@ -211,7 +205,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(t::lib::Auth::doPasswordLogin($t, {organization => 'Vaara'}),
      'Given a login session from organization Vaara');
 
-  ok(1, encode_utf8('When GETing the ssn'));
+  ok(1, 'When GETing the ssn');
   $t->get_ok("/api/v1/ssns/$id")
     ->status_is(200, "Then the ssn is returned");
   t::lib::U::debugResponse($t);
@@ -222,7 +216,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   is(scalar(@{$body->{organizations}}), 2, 'And there are no extra organizations on the list');
 
 
-  ok(1, encode_utf8('When DELETEing the ssn'));
+  ok(1, 'When DELETEing the ssn');
   $t->delete_ok("/api/v1/ssns/$id")
     ->status_is(204, "Then the Vaara-organization's ownership of the ssn is deleted");
   t::lib::U::debugResponse($t);
@@ -230,7 +224,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(not($body), 'And there is no content');
 
 
-  ok(1, encode_utf8('When GETing the deleted ssn'));
+  ok(1, 'When GETing the deleted ssn');
   $t->get_ok("/api/v1/ssns/$id")
     ->status_is(404, "Then the Vaara-organization no longer can get the ssn")
     ->content_like(qr!Hetula::Exception::Ssn::NotFound!, 'And the content contains the correct Hetula::Exception::Ssn::NotFound exception');
@@ -242,7 +236,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(t::lib::Auth::doPasswordLogin($t, {organization => 'Lumme'}),
      'Given a login session from organization Lumme');
 
-  ok(1, encode_utf8('When GETing the ssn'));
+  ok(1, 'When GETing the ssn');
   $t->get_ok("/api/v1/ssns/$id")
     ->status_is(200, "Then the ssn is returned");
   t::lib::U::debugResponse($t);
@@ -252,7 +246,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   is(scalar(@{$body->{organizations}}), 1, 'And there are no extra organizations on the list');
 
 
-  ok(1, encode_utf8('When DELETEing the ssn'));
+  ok(1, 'When DELETEing the ssn');
   $t->delete_ok("/api/v1/ssns/$id")
     ->status_is(204, "Then the Lumme-organization's ownership of the ssn is deleted");
   t::lib::U::debugResponse($t);
@@ -260,7 +254,7 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   ok(not($body), 'And there is no content');
 
 
-  ok(1, encode_utf8('When GETing the deleted ssn'));
+  ok(1, 'When GETing the deleted ssn');
   $t->get_ok("/api/v1/ssns/$id")
     ->status_is(404, "Then the Lumme-organization no longer can get the ssn")
     ->content_like(qr!Hetula::Exception::Ssn::NotFound!, 'And the content contains the correct Hetula::Exception::Ssn::NotFound exception');
@@ -276,8 +270,6 @@ subtest "Api V1 multiple organizations access the same ssn", sub {
   } catch {
     is(ref($_), 'Hetula::Exception::Ssn::NotFound', 'Then no ssn is found in the db');
   }
-  };
-  ok(0, ref($@)." :> $@") if $@;
 };
 
 

@@ -19,6 +19,8 @@ use Hetula::Exception::Ssn::NotFound;
 use Hetula::Exception::Ssn::AlreadyExists;
 use Hetula::Exception::Ssn::Invalid;
 
+my $l = bless({}, 'Hetula::Logger');
+
 =head2 listSsns
 
 @RETURNS ARRAYRef of Hetula::Schema::Result::Ssn-objects
@@ -142,20 +144,29 @@ sub createSsn {
   my $newSsnCreated;
   try {
     validateSsn($ssn->{ssn});
-    $ssn = getSsn({ssn => $ssn->{ssn}});
+
+    try {
+      $ssn = getSsn({ssn => $ssn->{ssn}});
+      $newSsnCreated = 0;
+    } catch {
+      if ($_->isa('Hetula::Exception::Ssn::NotFound')) {
+        $ssn = Hetula::Schema::schema()->resultset('Ssn')->create($ssn);
+        $newSsnCreated = 1;
+      }
+      else {
+        Hetula::Exception::rethrowDefaults($_);
+      }
+    };
     $ssn->add_to_organizations($organization);
-    $newSsnCreated = 0;
   } catch {
-
-    if ($_->isa('Hetula::Exception::Ssn::NotFound')) {
-      $ssn = Hetula::Schema::schema()->resultset('Ssn')->create($ssn);
-      $ssn->add_to_organizations($organization);
-      $newSsnCreated = 1;
-      return if $ssn;
-    }
-
     #Catch trying to re-add a organization dependency to an existing ssn
-    Hetula::Exception::Ssn::AlreadyExists->throw(ssn => $ssn, error => 'Ssn already exists for this given organization') if $_->isa('DBIx::Class::Exception') && $_->{msg} =~ /UNIQUE constraint failed/;
+    Hetula::Exception::Ssn::AlreadyExists->throw(ssn => $ssn, error => "Ssn already exists for this given organization '".$organization->name."'")
+      if ($_->isa('DBIx::Class::Exception') &&
+        (
+          ((Hetula::Config::db_driver eq 'mysql' || Hetula::Config::db_driver eq 'mariadb') && $_->{msg} =~ /Duplicate entry '\d+-\d+' for key 'ssn_organization_ssnid_organizationid'/) ||
+          (Hetula::Config::db_driver eq 'SQLite' && $_->{msg} =~ /UNIQUE constraint failed/)
+        )
+    );
     Hetula::Exception::rethrowDefaults($_);
   };
 

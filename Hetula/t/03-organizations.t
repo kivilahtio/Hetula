@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::More;
+use Test::More tests => 1;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -22,6 +22,7 @@ use DateTime::Format::ISO8601;
 
 
 subtest "Api V1 CRUD organizations happy path", sub {
+  plan tests => 34;
   my ($body, $id);
   t::lib::Auth::doPasswordLogin($t);
 
