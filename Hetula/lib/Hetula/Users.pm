@@ -114,7 +114,7 @@ sub _createUser {
     return $rs->create($user);
   } catch {
     Hetula::Exception::User::Duplicate->throw(
-      error => "User '".$user->{realname}."' already exists.",
+      error => "User '".($user->{realname} || $user->{username})."' already exists.",
       user => getUser({username => $user->{username}})->swaggerize()
     ) if (blessed($_) && $_->isa('DBIx::Class::Exception') && $_->{msg} =~ /Duplicate entry '.+?' for key 'user_username'/);
 

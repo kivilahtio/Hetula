@@ -1,5 +1,3 @@
-use 5.22.0;
-
 package Hetula;
 
 use Mojo::Base 'Mojolicious';
@@ -39,6 +37,8 @@ This method will run once at server start
 sub startup {
   my $self = shift;
   my $mode = $self->mode;
+  $self->moniker('hetula');
+  push @{ $self->commands->namespaces }, __PACKAGE__.'::Command';
 
   # Forward error messages to the application log
   Mojo::IOLoop->singleton->reactor->on(error => sub {

@@ -70,6 +70,20 @@ Swagger-UI is available at
 
 You can login as the super admin using the admin name, password and organization from the applicable configuration file.
 
+## Server-side scripts
+
+Hetula has some commands to automate recurring tasks.
+
+On the server, execute
+
+`MOJO_MODE=testing perl script/hetula help`
+
+to see the available commands.
+
+# perl hetula addOrganization
+
+Helper to quickly configure a new organization and an admin for that organization to manage the organization's users.
+
 ## Hetula Javascript client
 
 See ../libhetula-javascript/README.md
