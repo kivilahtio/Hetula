@@ -41,30 +41,35 @@ GRANT ALL ON hetula_test.* to 'hetula'@'localhost';
 cd /home/hetula
 git clone https://github.com/KohaSuomi/Hetula.git
 
-### Configure environment variables
-
-echo "HETULA_HOME=/home/hetula/Hetula/Hetula" >> /etc/environment
-source /etc/environment
-
 ### Build, test, install
 
 perl ./Build.PL
 ./Build
-./Build test
 sudo ./Build install
+
+# Follow instructions from './Build install' to configure all the configuration files
+
+./Build test
 ./Build realclean
-
-
-### Configure hetula
-
-nano /etc/hetula/hetula.conf
 
 ### Restart systemd service
 
 systemctl restart hetula
 
-
-
 Hetula is automatically enabled on boot.
-It listens on port 8080.
+It listens on port 8000.
 
+### Using Hetula
+
+## Swagger-UI
+
+Easiest way to access all of Hetula's services is to use the Swagger UI to maintain the application.
+Swagger-UI is available at
+
+<hostname>/api/v1/doc/
+
+You can login as the super admin using the admin name, password and organization from the applicable configuration file.
+
+## Hetula Javascript client
+
+See ../libhetula-javascript/README.md
