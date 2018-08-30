@@ -14,7 +14,7 @@ Perl client for interfacing with Hetula
 
 See libhetula-perl/README.md
 
-#libhetula-perl
+#libhetula-javascript
 
 Javascript client for interfacing with Hetula
 

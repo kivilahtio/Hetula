@@ -1,0 +1,95 @@
+<html>
+  <meta charset="UTF-8">
+  <head>
+    <title>Hetula javascript client</title>
+    <!-- Use the development files or the bundled distributable
+    <script src="lib/promise-polyfill.8.1.0.min.js"></script>
+    <script src="lib/axios.0.19.0-beta.1.min.js"></script>
+    <script src='hetula.js' type='text/javascript'></script>
+    -->
+    <script src="dist/hetula.0.0.1.min.js"></script>
+  </head>
+  <body>
+
+    <div id="story"></div>
+    <div id="console"></div>
+    <legend>
+      <label for="hetulaSrv">       Hetula server address:    <input type="text"   id="hetulaSrv"     placeholder="http://localhost:8000"/></label><br/>
+      <label for="sleepDuration">   Sleep between steps in ms:<input type="number" id="sleepDuration" value="3000"/></label><br/>
+      <label for="organizationName">Hetula user organization name: <input type="text" id="organizationName" value="Vaara"/></label><br/>
+      <label for="username">        Hetula user username:     <input type="text"   id="username"      placeholder="superusername"/></label><br/>
+      <label for="password">        Hetula user password:     <input type="text"   id="password"      placeholder="superuserpass"/></label><br/>
+      <label for="ssn">             Ssn to try adding:        <input type="text"   id="ssn"           value="101010-101B"/></label><br/>
+      <input type="button" id="triggerTest" value="Run tests" onclick="demo()"><br/>
+    </legend>
+
+    <script type="text/javascript">
+
+'use strict'
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function msg(story, response, ...toConsole) {
+  toConsole.forEach((val, index, array) => console.log(val))
+  document.getElementById("story").innerHTML = story
+  if (response) {
+    document.getElementById("console").innerHTML = response.status + " " + response.data
+  }
+  else {
+    document.getElementById("console").innerHTML = " "
+  }
+}
+
+function demo() {
+  const hetulaSrv =        document.getElementById("hetulaSrv").value       // || 'http://10.186.91.246:8000'
+  const sleepDuration =    document.getElementById("sleepDuration").value   // || 5000
+  const ssn =              document.getElementById("ssn").value
+  const username =         document.getElementById("username").value
+  const password =         document.getElementById("password").value
+  const organizationName = document.getElementById("organizationName").value
+
+  const hetula = new Hetula(hetulaSrv)
+
+  hetula.login(username, password, organizationName)
+  .then(function (response) {
+    msg("Logged in!", response, response)
+  })
+  .catch(function (error) {
+    msg("Login failed? Waaat!", error.response, error)
+  })
+  .then(sleep(sleepDuration).then(function () {
+    hetula.loggedIn()
+    .then(function (response) {
+      msg("Session is active!", response, response)
+    })
+    .catch(function (error) {
+      msg("No active session?!", error.response, error)
+    })
+    .then(sleep(sleepDuration).then(function () {
+      hetula.organizationAdd(organizationName)
+      .then(function (response) {
+        msg("Organization "+organizationName+" created!!", response, response)
+      })
+      .catch(function (error) {
+        msg("Creating organization "+organizationName+" failed :(((", error.response, error)
+      })
+      .then(sleep(sleepDuration).then(function () {
+        hetula.ssnAdd(ssn)
+        .then(function (response) {
+          msg("Ssn "+ssn+" created!!", response, response)
+        })
+        .catch(function (error) {
+          msg("Creating ssn "+ssn+" failed :()", error.response, error)
+        })
+        .then(sleep(sleepDuration).then(function () {
+          msg("Test complete")
+        }))
+      }))
+    }))
+  }))
+}
+    </script>
+  </body>
+</html>
