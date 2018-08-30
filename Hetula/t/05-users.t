@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -82,6 +82,30 @@ subtest "Scenario: Api V1 CRUD users happy path", sub {
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   ok(not($body), 'And there is no json body');
+};
+
+
+
+subtest "Scenario: Api V1 Create the same user many times", sub {
+  plan tests => 7;
+  my ($aila);
+
+  ok(1, 'When POSTing the User');
+  $aila = {
+    username => 'ak',
+    password => 'ak96',
+    realname => 'Kurkela, Aila',
+  };
+  my $ailaName = $aila->{realname};
+
+  $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $aila)
+    ->status_is(201, 'Then a new user is created');
+
+  ok(1, 'When POSTing the user again, even if it already exists');
+  $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $aila)
+    ->status_is(409,        'Then the server responds with a conflict.')
+    ->json_has('/realname', 'And the response has the duplicate users name');
+  t::lib::U::debugResponse($t);
 };
 
 

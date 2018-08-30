@@ -39,6 +39,7 @@ sub post {
     return $c->render(status => 201, openapi => $u);
 
   } catch {
+    return $c->render(status => 409, openapi => $_->{user}) if $_->isa('Hetula::Exception::User::Duplicate');
     return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
   };
 }

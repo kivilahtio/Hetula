@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -97,6 +97,23 @@ subtest "Api V1 CRUD permissions happy path", sub {
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
   ok(not($body), 'And there is no json body');
+};
+
+
+
+subtest "Scenario: Api V1 Create the same permission many times", sub {
+  plan tests => 6;
+  my $permissionName = 'duplicate-permission';
+  t::lib::Auth::doPasswordLogin($t);
+
+  ok(1, 'Given the permission is created.');
+  $t->post_ok('/api/v1/permissions' => {Accept => '*/*'} => json => {name => $permissionName});
+
+  ok(1, 'When POSTing the permission again, even if it already exists');
+  $t->post_ok('/api/v1/permissions' => {Accept => '*/*'} => json => {name => $permissionName})
+    ->status_is(409,    'Then the server responds with a conflict.')
+    ->json_has('/name', 'And the response is the duplicate permission');
+  t::lib::U::debugResponse($t);
 };
 
 

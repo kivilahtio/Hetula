@@ -15,6 +15,7 @@ use Hetula::Pragmas;
 use Digest::SHA;
 
 use Hetula::Exception::User::NotFound;
+use Hetula::Exception::User::Duplicate;
 
 =head2 listUsers
 
@@ -108,7 +109,17 @@ Creates a User-entry to the DB
 sub _createUser {
   my ($user) = @_;
   my $rs = Hetula::Schema::schema()->resultset('User');
-  return $rs->create($user);
+
+  try {
+    return $rs->create($user);
+  } catch {
+    Hetula::Exception::User::Duplicate->throw(
+      error => "User '".$user->{realname}."' already exists.",
+      user => getUser({username => $user->{username}})->swaggerize()
+    ) if (blessed($_) && $_->isa('DBIx::Class::Exception') && $_->{msg} =~ /Duplicate entry '.+?' for key 'user_username'/);
+
+    Hetula::Exception::rethrowDefaults($_);
+  };
 }
 
 =head2 modUser

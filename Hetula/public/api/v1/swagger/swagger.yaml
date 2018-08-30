@@ -311,6 +311,10 @@ paths:
           description: Organization added succesfully
           schema:
             $ref: '#/definitions/organization'
+        409:
+          description: Organization already exists
+          schema:
+            $ref: '#/definitions/organization'
 
 
   /organizations/{id}:
@@ -358,6 +362,10 @@ paths:
       responses:
         201:
           description: permission added successfully
+          schema:
+            $ref: '#/definitions/permission'
+        409:
+          description: Permission already exists
           schema:
             $ref: '#/definitions/permission'
 
@@ -534,6 +542,10 @@ paths:
       responses:
         201:
           description: User added
+          schema:
+            $ref: '#/definitions/user'
+        409:
+          description: User already exists
           schema:
             $ref: '#/definitions/user'
 

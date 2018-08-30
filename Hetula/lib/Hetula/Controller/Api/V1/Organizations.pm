@@ -27,6 +27,7 @@ sub post {
     return $c->render(status => 201, openapi => $org);
 
   } catch {
+    return $c->render(status => 409, openapi => $_->{organization}) if $_->isa('Hetula::Exception::Organization::Duplicate');
     return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
   };
 }

@@ -13,6 +13,7 @@ Manage this class of objects
 use Hetula::Pragmas;
 
 use Hetula::Exception::Permission::NotFound;
+use Hetula::Exception::Permission::Duplicate;
 
 =head2 getPermission
 
@@ -53,7 +54,16 @@ sub createPermission {
   my ($p) = @_;
 
   my $rs = Hetula::Schema::schema()->resultset('Permission');
-  return $rs->create($p);
+  try {
+    return $rs->create($p);
+  } catch {
+    Hetula::Exception::Permission::Duplicate->throw(
+      error => "Permission '".$p->{name}."' already exists.",
+      permission => getPermission({name => $p->{name}})->swaggerize()
+    ) if (blessed($_) && $_->isa('DBIx::Class::Exception') && $_->{msg} =~ /Duplicate entry '.+?' for key 'permission_name'/);
+
+    Hetula::Exception::rethrowDefaults($_);
+  };
 }
 
 =head2 deletePermission

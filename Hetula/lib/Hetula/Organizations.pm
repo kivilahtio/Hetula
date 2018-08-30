@@ -13,6 +13,7 @@ Manage this class of objects
 use Hetula::Pragmas;
 
 use Hetula::Exception::Organization::NotFound;
+use Hetula::Exception::Organization::Duplicate;
 
 my $l = bless({}, 'Hetula::Logger');
 
@@ -55,7 +56,16 @@ sub createOrganization {
   my ($organization) = @_;
 
   my $rs = Hetula::Schema::schema()->resultset('Organization');
-  return $rs->create($organization);
+  try {
+    return $rs->create($organization);
+  } catch {
+    Hetula::Exception::Organization::Duplicate->throw(
+      error => "Organization '".$organization->{name}."' already exists.",
+      organization => getOrganization({name => $organization->{name}})->swaggerize()
+    ) if (blessed($_) && $_->isa('DBIx::Class::Exception') && $_->{msg} =~ /Duplicate entry '.+?' for key 'organization_name'/);
+
+    Hetula::Exception::rethrowDefaults($_);
+  };
 }
 
 =head2 deleteOrganization

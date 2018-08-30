@@ -27,6 +27,7 @@ sub post {
     return $c->render(status => 201, openapi => $perm);
 
   } catch {
+    return $c->render(status => 409, openapi => $_->{permission}) if $_->isa('Hetula::Exception::Permission::Duplicate');
     return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
   };
 }
