@@ -82,7 +82,7 @@ sub startup {
   $self->hook(after_dispatch => sub {
     my $c = shift;
     my $path = $c->req->url->path;
-    Hetula::Logs::createLog($c) if ($path =~ m!^/api/v1! && $path !~ m!^/api/v1/doc!);
+    Hetula::Logs::createLog($c) if ($path =~ m!^/api/v1! && $path !~ m!^/api/v1/doc! && $c->req->method ne 'OPTIONS');
   });
 
   ##Fix a bug in DBIx::Class version 0.082840 where 'MySQL server has gone away at...' regardless of auto reconnect parameters.
@@ -90,6 +90,27 @@ sub startup {
     my ($next, $c) = @_;
     Hetula::Schema->keepaliveConnection();
     $next->();
+  });
+
+  #Boldly mutilate any safety CORS might grant
+  $self->hook(before_dispatch => sub {
+    my ($c) = @_;
+    my $tx = $c->tx;
+
+    #This is actually really bad. Forcibly disabling CORS origin security. Origin is not always set, but should be set by the browser when doing CORS that needs preflight.
+    #Instead a whitelist configuration should be made. This can be added if trouble arises.
+    if ($tx->req->headers->origin) {
+      $tx->res->headers->header( 'Access-Control-Allow-Origin' => $tx->req->headers->origin );
+      $tx->res->headers->header( 'Access-Control-Allow-Credentials' => 'true' );
+    }
+    else {
+      $tx->res->headers->header( 'Access-Control-Allow-Origin' => '*' );
+      #$tx->res->headers->header( 'Access-Control-Allow-Credentials' => 'true' ); #Never set this header at all if it should be false
+    }
+    $tx->res->headers->header( 'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS' );
+    $tx->res->headers->header( 'Access-Control-Max-Age' => 3600 );
+    $tx->res->headers->header( 'Access-Control-Allow-Headers' => 'Content-Type, X-Requested-With, X-CSRF-Token' );
+    $tx->res->headers->header( 'Access-Control-Expose-Headers' => 'X-CSRF-Token' );
   });
 
   #DB connection has been cached for the server process, and the same cache is copied for the forked workers.

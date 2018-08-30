@@ -35,10 +35,14 @@ Puts authenticated user to $c->stash()->{loggedinuser}
 sub under {
   my $c = shift;
 
+  #OPTIONS-requests can always pass. CORS needs this.
+  if ($c->req->method eq 'OPTIONS') {
+    return 1;
+  }
+
   #If we are authenticating, don't demand an existing authentication
   my $path = $c->req->url->path;
   if ($path =~ m!^/api/v1(/auth)?$!i) {
-    _updateCsrfToken($c);
     return 1;
   }
 
@@ -67,6 +71,7 @@ sub post {
 
   try {
     $c->_passwordAuthentication($passwordCredentials->{username}, $passwordCredentials->{password}, $passwordCredentials->{organization});
+    _updateCsrfToken($c);
     return $c->render(status => 201, text => 'Session created');
 
   } catch {

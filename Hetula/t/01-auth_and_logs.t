@@ -24,8 +24,8 @@ use Hetula::Users;
 
 
 subtest "Api V1 auth happy path", sub {
-  plan tests => 16;
-  my ($cookies, $sessionCookie, $csrfHeader, $login);
+  plan tests => 18;
+  my ($cookies, $sessionCookie, $csrfHeader, $csrfHeader2, $login);
 
   #This is duplicated in t::lib::Auth::doPasswordLogin(), login using doPasswordLogin() in other test cases instead of manually duplicating this.
   ok(1, 'When authenticating with proper credentials');
@@ -49,6 +49,9 @@ subtest "Api V1 auth happy path", sub {
   $t->get_ok('/api/v1/auth')
     ->status_is(204, 'Then the authentication is still valid');
   t::lib::U::debugResponse($t);
+  $csrfHeader2 = $t->tx->res->headers->header('X-CSRF-Token');
+  is(undef, $csrfHeader2,         'And the response has no CSRF-Token'); #Prevent phishing for the CSRF-token, using the check-session -logic, if the attacker has influence on the user's browser.
+  isnt($csrfHeader, $csrfHeader2, 'And the CSRF-Tokens do not match');   #This test looks rather useless, but is a fallback to see how the CSRF-Tokens fail, eg. is the token the same as from the login-actions?
 
 
   ok(1, 'When logging out');
