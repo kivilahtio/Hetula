@@ -3,7 +3,13 @@
 /**
  * Hetula Client implementation
  * for more documentation about possible request-response pairs, see the Swagger-UI in
- * <hetula-hostname>/api/v1/doc/
+ * @see <hetula-hostname>/api/v1/doc/
+ *
+ * Repository
+ * @see {@link https://github.com/kivilahtio/Hetula}
+ *
+ * @license GPL3+
+ * @copyright National Library of Finland
  */
 class Hetula {
   constructor(baseUrl) {
