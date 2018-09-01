@@ -29,9 +29,10 @@ sub set {
   Hetula::Config::loadConfigs();
   my $migration = DBIx::Class::Migration->new(schema => Hetula::Schema::schema());
   $migration->delete_table_rows(); #Flush the database so we can start testing cleanly
-  populateTestDB();
 
   my $t = Test::Mojo->new('Hetula');
+  populateTestDB();
+
   return $t;
 }
 
