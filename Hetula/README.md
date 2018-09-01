@@ -18,6 +18,7 @@ apt-get install
   - git
   - tig
   - cpanminus
+  - unzip
   - build-essential
   - libssl-dev
   - libipc-system-simple-perlcpanm
