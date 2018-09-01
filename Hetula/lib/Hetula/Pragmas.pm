@@ -43,6 +43,7 @@ sub import {
   Log::Log4perl->import::into($target);
   FindBin->import::into($target);
   List::Util->import::into($target);
+  Storable->import::into($target);
 
   #Local modules
   Hetula::Schema->import::into($target) unless $args{'no-schema'};

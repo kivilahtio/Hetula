@@ -141,9 +141,6 @@ definitions:
   user:
     type: object
     description: A user of this store, with specific permissions.
-    required:
-      - realname
-      - username
     properties:
       id:
         type: integer

@@ -35,11 +35,15 @@ sub post {
   my $user = $c->validation->param("user");
 
   try {
+    if ($user->{permissions}) {
+      Hetula::Permissions::hasPermissions($c->session->{userid}, $user->{permissions});
+    }
     my $u = Hetula::Users::createUser($user)->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 201, openapi => $u);
 
   } catch {
     return $c->render(status => 409, openapi => $_->{user}) if $_->isa('Hetula::Exception::User::Duplicate');
+    return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authorization');
     return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
   };
 }
@@ -50,17 +54,21 @@ sub put {
   my $id = $c->validation->param("id");
 
   try {
-    $user->{id} = $id;
+    $user->{id} = $id unless ($user->{id});
     if ($user->{id} && $user->{id} != $id) {
         Hetula::Exception::BadParameter->throw(error => "id in url '$id' and id in User '".$user->{id}."' are different");
     }
 
+    if ($user->{permissions}) {
+      Hetula::Permissions::hasPermissions($c->session->{userid}, $user->{permissions});
+    }
     my $u = Hetula::Users::modUser($user)->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 200, openapi => $u);
 
   } catch {
     return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception') && ref($_) =~ /::NotFound/;
     return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::BadParameter');
+    return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authorization');
     return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
   };
 }

@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::More tests => 6;
+use Test::Most tests => 7;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -195,6 +195,53 @@ subtest "Scenario: Api V1 CRUD users' permissions", sub {
   ok($body->{permissions}, 'And has permissions-attribute');
   is($body->{permissions}->[0], 'users-get',    'And the permission names are sorted alphabetically 1');
   is($body->{permissions}->[1], 'users-post',   'And the permission names are sorted alphabetically 2');
+};
+
+
+
+subtest "Scenario: Api V1 users - Prevent Grant permissions the user is not allowed to grant", sub {
+  plan tests => 14;
+  my ($badUser, $escalatedPermissions, $id) = @_;
+  my $badUserAttributes = {
+    realname => 'Bad Tango',
+    username => 'bt',
+    password => 'alfa romeo caesar',
+    organizations => [Hetula::Config::admin_organization()],
+    permissions => [qw(users-post users-id-put ssns-post organizations-get)]
+  };
+  ok($badUser = Hetula::Users::createUser(Storable::dclone($badUserAttributes)), "Given a user with limited permissions is logged in");
+
+  t::lib::Auth::doPasswordLogin($t, $badUserAttributes);
+
+  ok(1, 'When PUTing excessive permissions to try privilege escalation');
+  $escalatedPermissions = {
+    permissions => [
+      qw(permissions-post users-post ssns-get ssns-id-get)
+    ],
+  };
+  $t->put_ok("/api/v1/users/".$badUser->id => {Accept => '*/*'} => json => Storable::dclone($escalatedPermissions))
+    ->status_is(403, "Then setting user's excessive permissions fails")
+    ->content_like(qr!Hetula::Exception::Auth::Authorization!, 'And the content contains the correct Hetula::Exception::Auth::Authorization exception')
+    ->content_like(qr!permissions-post ssns-get ssns-id-get!,  'And the content contains the correct unauthorized permission');
+  t::lib::U::debugResponse($t);
+
+
+  my $badNewUserAttributes = {
+    realname => 'Bad Tango',
+    username => 'bt2',
+    password => 'disordered',
+    permissions => $escalatedPermissions->{permissions},
+  };
+  ok(1, 'When POSTing excessive permissions to try privilege escalation');
+  $t->put_ok("/api/v1/users/1" => {Accept => '*/*'} => json => Storable::dclone($badNewUserAttributes))
+    ->status_is(403, "Then setting user's excessive permissions fails")
+    ->content_like(qr!Hetula::Exception::Auth::Authorization!, 'And the content contains the correct Hetula::Exception::Auth::Authorization exception')
+    ->content_like(qr!permissions-post ssns-get ssns-id-get!,  'And the content contains the correct unauthorized permission');
+  t::lib::U::debugResponse($t);
+
+  throws_ok(sub { Hetula::Users::getUser({username => $badNewUserAttributes->{username}}) }, 'Hetula::Exception::User::NotFound',                                    "And the privilege escalation attempted new user is not created");
+  throws_ok(sub { Hetula::Permissions::hasPermissions($badUser, Storable::dclone($escalatedPermissions->{permissions})) }, 'Hetula::Exception::Auth::Authorization', 'And the privilege escalation failed for the logged in user');
+  throws_ok(sub { Hetula::Permissions::hasPermissions($badUser, Storable::dclone($escalatedPermissions->{permissions})) }, qr/permissions-post ssns-get ssns-id-get/,'and the missing permissions were correctly detected');
 };
 
 

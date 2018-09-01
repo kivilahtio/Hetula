@@ -167,12 +167,18 @@ sub revokeAllPermissions {
 sub setPermissions {
   my ($self, $permissions) = @_;
 
-  my @new = Hetula::Schema->schema->resultset('Permission')->search({name => {'-in' => $permissions}});
-  if (@$permissions != @new) {
-    my @missing = grep { my $p=$_; List::Util::none {$_->name eq $p} @new } @$permissions;
-    Hetula::Exception::Permission::NotFound->throw(error => "These given permissions '@missing' do not exist.");
+  if (blessed($permissions->[0]) && $permissions->[0]->isa('Hetula::Schema::Result::Permission')) {
+    #Looks like we got Permissions-objects instead, good!
+    $self->set_permissions($permissions);
   }
-  $self->set_permissions(\@new);
+  else {
+    my @new = Hetula::Schema->schema->resultset('Permission')->search({name => {'-in' => $permissions}});
+    if (@$permissions != @new) {
+      my @missing = grep { my $p=$_; List::Util::none {$_->name eq $p} @new } @$permissions;
+      Hetula::Exception::Permission::NotFound->throw(error => "These given permissions '@missing' do not exist.");
+    }
+    $self->set_permissions(\@new);
+  }
   return $self;
 }
 

@@ -146,6 +146,7 @@ $class->new(
     'MojoX::Log::Log4perl'              => '> 0.01',
     'SQL::Translator'                   => '> 0.01',
     'Test::MockModule'                  => '> 0.01',
+    'Test::Most'                        => '> 0.01',
     'Time::HiRes'                       => '> 0.01',
     'Try::Tiny'                         => '> 0.01',
     'YAML::XS'                          => '> 0.01',
