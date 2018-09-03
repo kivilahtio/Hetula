@@ -11,8 +11,8 @@ __PACKAGE__->add_columns(
   id             => { data_type => 'integer',  is_auto_increment => 1 },
   userid         => { data_type => 'integer',  is_foreign_key => 1,   is_nullable => 1 },
   organizationid => { data_type => 'integer',  is_foreign_key => 1,   is_nullable => 1 },
-  request        => { data_type => 'varchar',  size => 50},
-  description    => { data_type => 'varchar',  size => 50},
+  request        => { data_type => 'varchar'},
+  description    => { data_type => 'varchar'},
   ip             => { data_type => 'varchar',  size => 50}, #can be ipv6?
   updatetime     => { data_type => 'datetime', set_on_create => 1, set_on_update => 1 },
 );
