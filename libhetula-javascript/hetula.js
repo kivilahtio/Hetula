@@ -1,6 +1,8 @@
 'use strict';
 
 /**
+ * @version 0.0.2
+ *
  * Hetula Client implementation
  * for more documentation about possible request-response pairs, see the Swagger-UI in
  * @see <hetula-hostname>/api/v1/doc/
@@ -25,10 +27,10 @@ class Hetula {
 
   /**
    * Authenticate to Hetula
-   * 
-   * @param {String} username 
-   * @param {String} password 
-   * @param {String} organization 
+   *
+   * @param {String} username
+   * @param {String} password
+   * @param {String} organization
    * @returns {Promise} axios-response to a request, either a response-object on success, or a error-object on failure
    */
   login(username, password, organization) {
@@ -59,8 +61,8 @@ class Hetula {
   }
 
   /**
-   * 
-   * @param {String} organization 
+   *
+   * @param {String} organization
    * @returns {Promise} axios-response to a request, either a response-object on success, or a error-object on failure
    */
   organizationAdd(name) {
@@ -70,8 +72,8 @@ class Hetula {
   }
 
   /**
-   * 
-   * @param {String} ssn 
+   *
+   * @param {String} ssn
    * @returns {Promise} axios-response to a request, either a response-object on success, or a error-object on failure
    */
   ssnAdd(ssn) {

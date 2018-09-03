@@ -23,9 +23,9 @@ Then just point your browser to the test server
 
 This is done simply by concatenating the dependencies and the library itself together.
 
-`cat lib/promise-polyfill.8.1.0.min.js lib/axios.0.19.0-beta.1.min.js hetula.js > dist/hetula.0.0.1.min.js`
+`cat lib/axios.0.19.0-beta.1.min.js hetula.js > dist/hetula.0.0.1.min.js`
 
-This might cause issues with environments alredy using axios, so the build "system" will probably change soon :)
+This might cause issues with environments alredy using axios, so the build "system" will probably change "soon" :)
 Setting up webpack would be an overkill.
 
 ## Or just pick the file
