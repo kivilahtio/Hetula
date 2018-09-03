@@ -13,6 +13,7 @@ my $l = bless({}, 'Hetula::Logger');
 
 use Hetula::Exception::Database::Missing;
 use Hetula::Exception::Database::Misconfigured;
+use Hetula::Exception::Database::Upgrade;
 
 =head1 NAME
 
@@ -103,15 +104,23 @@ sub isDBOk() {
   my $migration = DBIx::Class::Migration->new(schema => $schema);
   if ($migration->dbic_dh->version_storage_is_installed()) {
     $dbVersion = $migration->dbic_dh->database_version();
+    if ($dbVersion < $VERSION) {
+      try {
+        $migration->upgrade();
+        $l->info("Database upgraded from version '$dbVersion' to version '$VERSION'");
+      } catch {
+        Hetula::Exception::Database::Upgrade->throw(error => "Installed database version is '$dbVersion'. Unable to upgrade it to version '$VERSION' automatically, error:\n  $_\nTry upgrading Hetula with 'dbic-migrate'");
+      };
+    }
   }
   else {
-    eval {
+    try {
       $migration->install_if_needed();
       $dbVersion = $migration->dbic_dh->database_version();
+      $l->info("Database version '$dbVersion' installed");
+    } catch {
+      Hetula::Exception::Database::Missing->throw(error => "Database is missing. Unable to install it automatically, error:\n  $_\nTry installing Hetula with 'dbic-migrate'");
     };
-    if ($@) {
-      Hetula::Exception::Database::Missing->throw(error => "Database is missing. Unable to deploy it automatically, error:\n $@\nInstall it with 'dbic-migrate install'");
-    }
   }
 }
 

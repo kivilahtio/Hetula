@@ -52,7 +52,7 @@ sub startup {
   my ($hetulaConfig, $log4perlConfig) = Hetula::Config::loadConfigs();
   $self->plugin(Config => {file => $hetulaConfig}); #Loading the config here is kinda duplication (since there is Hetula::Config), but some mojolicious aspects are configured this way automatically, so better to make the config directly accesible as a Mojolicious Plugin.
   $self->log(MojoX::Log::Log4perl->new($log4perlConfig));
-  $self->log->info('Initialized MojoX::Log::Log4perl');
+  $self->log->debug('Initialized MojoX::Log::Log4perl');
 
   $self->sessions->cookie_name('PaStor');
   $self->sessions->default_expiration(Hetula::Config::session_expiration());
