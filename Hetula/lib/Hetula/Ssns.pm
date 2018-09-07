@@ -62,10 +62,12 @@ sub getSsn {
 
 sub getSsnForOrganization {
   my ($args, $organization) = @_;
-  $args = {
-    'me.id' => $args->{id},
-    'ssn_organizations.organizationid' => $organization->id,
-  };
+  my $ssnId = $args->{id};
+  delete $args->{id};
+
+  $args->{'me.id'} = $ssnId if $ssnId;
+  $args->{'ssn_organizations.organizationid'} = $organization->id;
+
   my $rs = Hetula::Schema::schema()->resultset('Ssn');
   my $ssn = $rs->search($args, {join => 'ssn_organizations'})->single();
   Hetula::Exception::Ssn::NotFound->throw(error => 'No ssn found with params "'.Data::Dumper::Dumper($args).'"') unless $ssn;
