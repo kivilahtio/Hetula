@@ -79,9 +79,23 @@ On the server, execute
 
 to see the available commands.
 
-### perl hetula addOrganization
+#### perl hetula addOrganization
 
 Helper to quickly configure a new organization and an admin for that organization to manage the organization's users.
+
+#### perl hetula batchImportSsn
+
+Migrate a bunch of ssns to Hetula and get another list where the ssn ids are.
+
+## Adding a new organization to Hetula
+
+### Loading a batch of ssns into Hetula
+
+Hetula has a REST batch-endpoint for reading in a large amount of ssns quickly.
+
+Alternatively one can use the Mojolicious command
+
+`batchImportSsn`
 
 ## Hetula Javascript client
 
