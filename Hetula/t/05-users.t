@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::Most tests => 7;
+use Test::Most tests => 8;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -96,7 +96,6 @@ subtest "Scenario: Api V1 Create the same user many times", sub {
     password => 'ak96',
     realname => 'Kurkela, Aila',
   };
-  my $ailaName = $aila->{realname};
 
   $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $aila)
     ->status_is(201, 'Then a new user is created');
@@ -105,6 +104,38 @@ subtest "Scenario: Api V1 Create the same user many times", sub {
   $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $aila)
     ->status_is(409,        'Then the server responds with a conflict.')
     ->json_has('/realname', 'And the response has the duplicate users name');
+  t::lib::U::debugResponse($t);
+};
+
+
+
+subtest "Scenario: Api V1 Get users by username or id. Username cannot be only numbers.", sub {
+  plan tests => 12;
+  my ($aila);
+
+  ok(1, 'When POSTing a User with username of only numbers');
+  $aila = {
+    username => '1234',
+    password => 'ak96',
+    realname => 'Kurkela, Aila',
+  };
+
+  $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $aila)
+    ->status_is(400, 'Then the creation fails')
+    ->content_like(qr!Hetula::Exception::BadParameter!, 'And the content contains the correct Hetula::Exception::BadParameter exception');
+  t::lib::U::debugResponse($t);
+
+  ok(1, 'When POSTing the user again with a proper username');
+  $aila->{username} = '1234a';
+  $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $aila)
+    ->status_is(201,        'Then a new user is created.')
+    ->json_is('/username', $aila->{username}, 'And the response has the correct username');
+  t::lib::U::debugResponse($t);
+
+  ok(1, 'When GETting user by it\'s username');
+  $t->get_ok("/api/v1/users/".$aila->{username})
+    ->status_is(200, 'Then the user is returned')
+    ->json_is('/username', $aila->{username}, 'And the response has the correct username');
   t::lib::U::debugResponse($t);
 };
 

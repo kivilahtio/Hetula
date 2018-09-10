@@ -16,6 +16,7 @@ use Digest::SHA;
 
 use Hetula::Exception::User::NotFound;
 use Hetula::Exception::User::Duplicate;
+use Hetula::Exception::BadParameter;
 
 =head2 listUsers
 
@@ -86,6 +87,8 @@ sub createUser {
   my ($permissions, $organizations) = ($user->{permissions}, $user->{organizations});
   delete $user->{permissions};
   delete $user->{organizations};
+
+  Hetula::Exception::BadParameter->throw(error => "Username is only digits. It must contain atleast one non-digit character.") if ($user->{username} =~ /^\d+$/); #Username cannot be only digits so it doesn't get mixed up with the id.
 
   $user->{password} = _hashPassword($user->{password});
   my $newUser = _createUser($user);
@@ -158,7 +161,7 @@ Updates a User-entry to the DB
 
 sub _modUser {
   my ($user) = @_;
-  my $oldUser = getUser({id => $user->{id}});
+  my $oldUser = getUser($user);
   return $oldUser->update($user);
 }
 
@@ -170,7 +173,7 @@ Deletes an user
 
 sub deleteUser {
   my ($args) = @_;
-  getUser({id => $args->{id}})->delete();
+  getUser($args)->delete();
 }
 
 =head2 _hashPassword

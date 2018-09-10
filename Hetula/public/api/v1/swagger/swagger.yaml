@@ -551,8 +551,8 @@ paths:
     parameters:
       - name: id
         in: path
-        type: integer
-        description: user.id
+        type: string
+        description: user.id or user.username
         required: true
     get:
       summary: Get a user
