@@ -44,6 +44,7 @@ sub post {
   } catch {
     return $c->render(status => 409, openapi => $_->{user}) if $_->isa('Hetula::Exception::User::Duplicate');
     return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::BadParameter');
+    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Password');
     return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authorization');
     return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
   };
@@ -80,6 +81,35 @@ sub put {
   } catch {
     return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception') && ref($_) =~ /::NotFound/;
     return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::BadParameter');
+    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Password');
+    return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authorization');
+    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+  };
+}
+
+sub putPassword {
+  my $c = shift->openapi->valid_input or return;
+  my $password = $c->validation->param("password");
+  my $id = $c->validation->param("id");
+  my $username;
+
+  try {
+    my $args = {password => (ref($password) eq 'HASH' ? $password->{password} : $password)};
+    #id in the path component can be either an id or an username, depending on it's contents
+    if ($id =~ /^\d+$/) {
+      $args->{id} = $id;
+    }
+    else {
+      $args->{username} = $id;
+    }
+
+    Hetula::Users::modUser($args);
+    return $c->render(status => 204, openapi => undef);
+
+  } catch {
+    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception') && ref($_) =~ /::NotFound/;
+    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::BadParameter');
+    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Password');
     return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authorization');
     return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
   };
@@ -119,6 +149,29 @@ sub delete {
     else {
       Hetula::Users::deleteUser({id => $id});
     }
+    return $c->render(status => 204, openapi => undef);
+
+  } catch {
+    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::User::NotFound');
+    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+  };
+}
+
+sub deletePassword {
+  my $c = shift->openapi->valid_input or return;
+  my $id = $c->validation->param('id');
+
+  try {
+    my $args = {password => '!'};
+    #id in the path component can be either an id or an username, depending on it's contents
+    if ($id =~ /^\d+$/) {
+      $args->{id} = $id;
+    }
+    else {
+      $args->{username} = $id;
+    }
+
+    Hetula::Users::modUser($args);
     return $c->render(status => 204, openapi => undef);
 
   } catch {

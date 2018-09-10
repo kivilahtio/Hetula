@@ -164,6 +164,7 @@ sub _checkFailedLoginCount {
 
 sub _checkPassword {
   my ($user, $pass) = @_;
+  Hetula::Exception::Auth::Password->throw(error => 'Account disabled') if $user->password eq '!';
   unless ($user && Hetula::Users::_hashPassword($pass) eq $user->password ) {
     Hetula::Exception::Auth::Password->throw(error => 'Wrong password');
   }
@@ -214,12 +215,19 @@ sub _authorizeApiResource {
   Hetula::Exception::Auth::CSRF->throw(error => 'Cross-Site Request Forgery attempt suspected. Authentication failed.')
           if $validation->csrf_protect->has_error('csrf_token');
 
-  #Check for the proper permission
-  my $permissionNeeded = $c->app->getPermissionFromRoute($c->match->endpoint);
-  unless ($user->hasPermission($permissionNeeded)) {
-    Hetula::Exception::Auth::Authorization->throw(error => "User '".$user->username."' is missing permission '$permissionNeeded'");
+  ##Check for the proper permission
+  my $path = $c->req->url->path;
+  if ($path =~ m!^/api/v1/users/(.+?)(?:/\w+)?$! &&
+      ($userid eq $1 || $user->username eq $1)) {
+    #User can access his own data if he is otherwise logged in
+    my $dummy = 1; #Without this, program hangs here?
   }
-
+  else {
+    my $permissionNeeded = $c->app->getPermissionFromRoute($c->match->endpoint);
+    unless ($user->hasPermission($permissionNeeded)) {
+      Hetula::Exception::Auth::Authorization->throw(error => "User '".$user->username."' is missing permission '$permissionNeeded'");
+    }
+  }
 }
 
 =head2 _createSession

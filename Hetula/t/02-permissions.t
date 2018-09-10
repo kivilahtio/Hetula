@@ -42,6 +42,8 @@ subtest "Api V1 verify default route permissions", sub {
     [qr/^\d+$/, 'users-get',       undef, undef],
     [qr/^\d+$/, 'users-id-delete', undef, undef],
     [qr/^\d+$/, 'users-id-get',    undef, undef],
+    [qr/^\d+$/, 'users-id-password-delete', undef, undef],
+    [qr/^\d+$/, 'users-id-password-put', undef, undef],
     [qr/^\d+$/, 'users-id-put',    undef, undef],
     [qr/^\d+$/, 'users-post',      undef, undef],
   ];

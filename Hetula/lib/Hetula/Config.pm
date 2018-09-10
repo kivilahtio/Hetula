@@ -201,6 +201,15 @@ sub max_failed_login_count($val=undef) {
   return $config->{max_failed_login_count};
 }
 
+=head2 minimum_password_length
+
+=cut
+
+sub minimum_password_length($val=undef) {
+  $config->{minimum_password_length} = $val if $val;
+  return $config->{minimum_password_length} // 4;
+}
+
 =head2 db_driver
 
 =cut

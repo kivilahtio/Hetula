@@ -30,6 +30,7 @@ sub doPasswordLogin {
   t::lib::U::debugResponse($t);
   my $cookies = $tx->res->cookies;
   my $sessionCookie = $cookies->[0];
+  die("No session cookie?") unless $sessionCookie;
   $t->ua->cookie_jar->add($sessionCookie);
 
   my $csrfHeader = $tx->res->headers->header('X-CSRF-Token');

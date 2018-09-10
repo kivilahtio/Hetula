@@ -583,6 +583,47 @@ paths:
       responses:
         204:
           description: User deleted
+
+  /users/{id}/password:
+    parameters:
+      - name: id
+        in: path
+        type: string
+        description: user.id or user.username
+        required: true
+    put:
+      summary: Change password
+      x-mojo-to: Users#putPassword
+      parameters:
+        - name: password
+          in: body
+          schema:
+            type: object
+            description: The new password
+            required:
+            - password
+            properties:
+              password:
+                description: user.password
+                type: string
+                format: password
+
+      responses:
+        204:
+          description: Password modified
+        404:
+          description: User or related permission/organization is not found.
+        400:
+          description: Password is invalid
+    delete:
+      summary: Invalidate account
+      x-mojo-to: Users#deletePassword
+      responses:
+        204:
+          description: Password deleted
+        404:
+          description: User or related permission/organization is not found.
+
 ### END OF ### PATHS ### ###
 
 security:

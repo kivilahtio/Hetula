@@ -5,7 +5,7 @@ use lib "$FindBin::Bin/../lib";
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::Most tests => 8;
+use Test::Most tests => 10;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -86,9 +86,133 @@ subtest "Scenario: Api V1 CRUD users happy path", sub {
 
 
 
+subtest "Scenario: Reset and invalidate own password", sub {
+  plan tests => 28;
+  my $user = {
+    username => 'ak69',
+    password => 'ak96',
+    realname => 'Kurkela, Aila',
+    permissions => [
+      #no permissions, user can update and delete his/her own password
+    ],
+    organizations => ['Vaara'],
+  };
+  my $oldLogin = {
+    username => $user->{username},
+    password => $user->{password},
+    organization => $user->{organizations}->[0],
+  };
+  my $newPassword = "very new password";
+  my $newLogin = {
+    username => $user->{username},
+    password => $newPassword,
+    organization => $user->{organizations}->[0],
+  };
+
+  ok(Hetula::Users::createUser(Storable::dclone($user)), 'Given a user');
+  ok(1, "And the user is logged in");
+  t::lib::Auth::doPasswordLogin($t, $user);
+
+  ok(1, "When the user logs in");
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $oldLogin)
+    ->status_is(201, 'Then the login succeeds');
+  t::lib::U::debugResponse($t);
+
+  ok(1, 'When the user changes her password to a short password');
+  $t->put_ok('/api/v1/users/'.$user->{username}.'/password' => {Accept => '*/*'} => json => {password => 'new'})
+    ->status_is(400,        'Then the password is too short.')
+    ->content_like(qr!Hetula::Exception::Auth::Password!, 'And the content contains the correct Hetula::Exception::Auth::Password exception');
+  t::lib::U::debugResponse($t);
+
+  ok(1, "When the user logs in using the old password");
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $oldLogin)
+    ->status_is(201, 'Then the login succeeds');
+  t::lib::U::debugResponse($t);
+
+  ok(1, 'When the user changes her password to a long password');
+  $t->put_ok('/api/v1/users/'.$user->{username}.'/password' => {Accept => '*/*'} => json => {password => $newPassword})
+    ->status_is(204,        'Then the password is updated.');
+  t::lib::U::debugResponse($t);
+
+  ok(1, "When the user logs in using the old obsolete password");
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $oldLogin)
+    ->status_is(401, 'Then the login fails');
+  t::lib::U::debugResponse($t);
+
+  ok(1, "When the user logs in using the new password");
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $newLogin)
+    ->status_is(201, 'Then the login succeeds');
+  t::lib::U::debugResponse($t);
+
+  ok(1, 'When the user deletes her password');
+  $t->delete_ok('/api/v1/users/'.$user->{username}.'/password' => {Accept => '*/*'})
+    ->status_is(204,        'Then the password is deleted.');
+  t::lib::U::debugResponse($t);
+
+  ok(1, "When the user logs in using the new changed password");
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $newLogin)
+    ->status_is(401, 'Then the login fails')
+    ->content_like(qr!disabled!, 'And the user account is disabled');
+  t::lib::U::debugResponse($t);
+};
+
+
+
+subtest "Scenario: Reset and invalidate somebody else's password", sub {
+  plan tests => 17;
+  my $userInnocent = {
+    username => 'innocentius',
+    password => 'victim',
+    realname => 'Innocentius, Victim of digital battery',
+  };
+  my $innocentLogin = { username => 'innocentius', password => 'victim', organization => 'Vaara' };
+  my $userBad = {
+    username => 'bad-baddie',
+    password => 'bad-baddie-password',
+    realname => 'Infiltrator Iris',
+    permissions => [
+      #no permissions, this is creepy!
+    ],
+  };
+  my $badLogin = { username => 'bad-baddie', password => 'bad-baddie-password', organization => 'Vaara' };
+  my $badPassword = '12345678910';
+
+  ok(Hetula::Users::createUser(Storable::dclone($userInnocent)), 'Given a innocent user with a password');
+  ok(Hetula::Users::createUser(Storable::dclone($userBad)),      'Given a bad user with a password');
+
+  ok(1, "The bad user logs in");
+  t::lib::Auth::doPasswordLogin($t, $badLogin);
+
+  ok(1, "When the bad user changes innocentius' password");
+  $t->put_ok('/api/v1/users/'.$userInnocent->{username}.'/password' => {Accept => '*/*'} => json => {password => $badPassword})
+    ->status_is(403,        "Then the bad user doesn't have the permission to change somebody else's password.")
+    ->content_like(qr!Hetula::Exception::Auth::Authorization!, 'And the content contains the correct Hetula::Exception::Auth::Authorization exception');
+  t::lib::U::debugResponse($t);
+
+  ok(1, "When the bad user logs in using the newly forged credentials");
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => {username => $userInnocent->{username}, password => $badPassword, organization => 'Vaara'})
+    ->status_is(401, "Then the login fails, because the password wasn't updated");
+  t::lib::U::debugResponse($t);
+
+  ok(1, "When the bad user deletes innocentius' password");
+  $t->delete_ok('/api/v1/users/'.$userInnocent->{username}.'/password' => {Accept => '*/*'})
+    ->status_is(403,        "Then the bad user doesn't have the permission to delete somebody else's password.")
+    ->content_like(qr!Hetula::Exception::Auth::Authorization!, 'And the content contains the correct Hetula::Exception::Auth::Authorization exception');
+  t::lib::U::debugResponse($t);
+
+  ok(1, "When innocentius logs in using his old credentials");
+  $t->post_ok('/api/v1/auth' => {Accept => '*/*'} => json => $innocentLogin)
+    ->status_is(201, 'Then the login succeeds');
+  t::lib::U::debugResponse($t);
+};
+
+
+
 subtest "Scenario: Api V1 Create the same user many times", sub {
   plan tests => 7;
   my ($aila);
+
+  t::lib::Auth::doPasswordLogin($t);
 
   ok(1, 'When POSTing the User');
   $aila = {

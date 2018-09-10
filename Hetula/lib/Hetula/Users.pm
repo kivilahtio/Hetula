@@ -17,6 +17,7 @@ use Digest::SHA;
 use Hetula::Exception::User::NotFound;
 use Hetula::Exception::User::Duplicate;
 use Hetula::Exception::BadParameter;
+use Hetula::Exception::Auth::Password;
 
 =head2 listUsers
 
@@ -90,7 +91,7 @@ sub createUser {
 
   Hetula::Exception::BadParameter->throw(error => "Username is only digits. It must contain atleast one non-digit character.") if ($user->{username} =~ /^\d+$/); #Username cannot be only digits so it doesn't get mixed up with the id.
 
-  $user->{password} = _hashPassword($user->{password});
+  $user->{password} = _createPassword($user->{password});
   my $newUser = _createUser($user);
 
   if ($permissions) {
@@ -139,7 +140,7 @@ sub modUser {
 
   my $guard = Hetula::Schema::schema()->txn_scope_guard; #Be ready to rollback if errors arise
 
-  $user->{password} = _hashPassword($user->{password}) if $user->{password};
+  $user->{password} = _createPassword($user->{password}) if $user->{password};
   my $oldUser = _modUser($user);
 
   if ($permissions) {
@@ -176,6 +177,21 @@ sub deleteUser {
   getUser($args)->delete();
 }
 
+=head2 _createPassword
+
+ @param1 {String} password
+
+=cut
+
+sub _createPassword {
+  my ($password) = @_;
+  Hetula::Exception::Auth::Password->throw(error => "No password given!") unless ($password);
+  return $password if $password eq '!';
+  Hetula::Exception::Auth::Password->throw(error => "Given password is shorter than the configured minimum password length '".Hetula::Config::minimum_password_length()."'")
+    unless length($password) >= Hetula::Config::minimum_password_length();
+  return _hashPassword($password);
+}
+
 =head2 _hashPassword
 
 @PARAM1 String, password
@@ -184,6 +200,7 @@ sub deleteUser {
 
 sub _hashPassword {
   my ($password) = @_;
+  Hetula::Exception::Auth::Password->throw(error => "Trying to hash a disabled password!") if ($password eq '!');
   return Digest::SHA::sha256_base64($password);
 }
 

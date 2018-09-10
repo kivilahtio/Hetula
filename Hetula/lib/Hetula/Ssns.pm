@@ -203,17 +203,6 @@ sub deleteSsn {
   return ($ssnDeleted);
 }
 
-=head2 _hashPassword
-
-@PARAM1 HASHRef of ssn attributes.
-
-=cut
-
-sub _hashPassword {
-  my ($ssn) = @_;
-  $ssn->{password} = Digest::SHA::sha256($ssn->{password});
-}
-
 =head2 validateSsn
 
 @FROM Parts taken from https://gist.github.com/puumuki/11172310

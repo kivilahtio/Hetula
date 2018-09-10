@@ -73,7 +73,6 @@ sub testPermissions {
 }
 
 sub testArrayToHash {
-  $DB::single=1;
   my ($expectedArrays, $realHashes, $keyToIndex, $identifyingKey) = @_;
   my $ymd = DateTime->now()->ymd('-');
 
