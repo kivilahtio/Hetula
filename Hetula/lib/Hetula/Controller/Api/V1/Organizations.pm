@@ -27,8 +27,9 @@ sub post {
     return $c->render(status => 201, openapi => $org);
 
   } catch {
-    return $c->render(status => 409, openapi => $_->{organization}) if $_->isa('Hetula::Exception::Organization::Duplicate');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    my @render = Hetula::Exception::handleDefaults($_);
+    @render = (status => $_->httpStatus, openapi => $_->{organization}) if $_->isa('Hetula::Exception::Organization::Duplicate');
+    $c->render(@render);
   };
 }
 
@@ -45,8 +46,7 @@ sub get {
     return $c->render(status => 200, openapi => $org);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Organization::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -64,8 +64,7 @@ sub list {
     return $c->render(status => 200, openapi => $orgs);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Organization::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -78,8 +77,7 @@ sub delete {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Organization::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 

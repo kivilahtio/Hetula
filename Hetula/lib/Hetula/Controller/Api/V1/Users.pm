@@ -25,8 +25,7 @@ sub list {
     return $c->render(status => 200, openapi => $users);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::User::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -42,11 +41,9 @@ sub post {
     return $c->render(status => 201, openapi => $u);
 
   } catch {
-    return $c->render(status => 409, openapi => $_->{user}) if $_->isa('Hetula::Exception::User::Duplicate');
-    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::BadParameter');
-    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Password');
-    return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authorization');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    my @render = Hetula::Exception::handleDefaults($_);
+    @render = (status => $_->httpStatus, openapi => $_->{user}) if $_->isa('Hetula::Exception::User::Duplicate');
+    $c->render(@render);
   };
 }
 
@@ -79,11 +76,7 @@ sub put {
     return $c->render(status => 200, openapi => $u);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception') && ref($_) =~ /::NotFound/;
-    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::BadParameter');
-    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Password');
-    return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authorization');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -107,11 +100,7 @@ sub putPassword {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception') && ref($_) =~ /::NotFound/;
-    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::BadParameter');
-    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Password');
-    return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authorization');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -133,8 +122,7 @@ sub get {
     return $c->render(status => 200, openapi => $user);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::User::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -152,8 +140,7 @@ sub delete {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::User::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -175,8 +162,7 @@ sub deletePassword {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::User::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 

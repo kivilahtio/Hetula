@@ -18,6 +18,7 @@ use Hetula::Exception::User::NotFound;
 use Hetula::Exception::User::Duplicate;
 use Hetula::Exception::BadParameter;
 use Hetula::Exception::Auth::Password;
+use Hetula::Exception::Auth::PasswordFormat;
 
 =head2 listUsers
 
@@ -185,9 +186,9 @@ sub deleteUser {
 
 sub _createPassword {
   my ($password) = @_;
-  Hetula::Exception::Auth::Password->throw(error => "No password given!") unless ($password);
+  Hetula::Exception::Auth::PasswordFormat->throw(error => "No password given!") unless ($password);
   return $password if $password eq '!';
-  Hetula::Exception::Auth::Password->throw(error => "Given password is shorter than the configured minimum password length '".Hetula::Config::minimum_password_length()."'")
+  Hetula::Exception::Auth::PasswordFormat->throw(error => "Given password is shorter than the configured minimum password length '".Hetula::Config::minimum_password_length()."'")
     unless length($password) >= Hetula::Config::minimum_password_length();
   return _hashPassword($password);
 }

@@ -121,7 +121,7 @@ subtest "Scenario: Reset and invalidate own password", sub {
   ok(1, 'When the user changes her password to a short password');
   $t->put_ok('/api/v1/users/'.$user->{username}.'/password' => {Accept => '*/*'} => json => {password => 'new'})
     ->status_is(400,        'Then the password is too short.')
-    ->content_like(qr!Hetula::Exception::Auth::Password!, 'And the content contains the correct Hetula::Exception::Auth::Password exception');
+    ->content_like(qr!Hetula::Exception::Auth::PasswordFormat!, 'And the content contains the correct Hetula::Exception::Auth::PasswordFormat exception');
   t::lib::U::debugResponse($t);
 
   ok(1, "When the user logs in using the old password");

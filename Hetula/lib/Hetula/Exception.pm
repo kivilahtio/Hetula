@@ -2,11 +2,32 @@ package Hetula::Exception;
 
 use Hetula::Pragmas;
 
+my $l = bless({}, 'Hetula::Logger');
+
 use Exception::Class (
   'Hetula::Exception' => {
     description => 'Hetula exceptions base class',
+    fields => ['httpStatus'],
   },
 );
+
+=head2 generateNew
+
+Returns Perl code block which when eval'd creates a constructor for the class
+setting the Exception::Class instances' package variable $httpStatus as the
+httpStatus-fields value, if it doesn't already exist.
+
+This hack erases code duplication for this feature touching all Exceptions in Hetula.
+
+=cut
+
+sub generateNew {
+  return 'sub new {
+    my $class = shift;
+    push(@_, httpStatus => $httpStatus) unless (List::Util::first {$_ eq "httpStatus"} @_);
+    my $self = $class->SUPER::new(@_);
+  }';
+}
 
 sub newFromDie {
   my ($class, $die) = @_;
@@ -47,22 +68,26 @@ Instead of:
 
 You can say:
 
-    my $default = Hetula::Exception::handleDefaults($_);
-    return $c->render(status => 500, text => $default) if $default;
-    return $c->render(status => 401, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authentication');
-    return $c->render(status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth');
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::User::NotFound');
+    my @render = Hetula::Exception::handleDefaults($_);
+    @render = (status => 401, text => $_->toText) if $_->isa('Hetula::Exception::Auth::Authentication');
+    @render = (status => 403, text => $_->toText) if $_->isa('Hetula::Exception::Auth');
+    @render = (status => 404, text => $_->toText) if $_->isa('Hetula::Exception::User::NotFound');
+    $c->render(@render);
+
+Or, if using the Exception default http status codes, even:
+
+    return $c->render(Hetula::Exception::handleDefaults($_));
 
 =cut
 
 sub handleDefaults {
   my ($e) = @_;
 
-  return $e unless blessed($e);
-  return toTextMojo($e) if $e->isa('Mojo::Exception');
-  return $e->toText if ref($e) eq 'Hetula::Exception'; #If this is THE 'Hetula::Exception', then handle it here
-  return $e->toText if $e->isa('Hetula::Exception'); #If this is a subclass of 'Hetula::Exception', then let it through
-  return toTextUnknown($e);
+  return (status => 500, text => $e) unless blessed($e);
+  return (status => 500, text => toTextMojo($e)) if $e->isa('Mojo::Exception');
+  return (status => 500, text => $e->toText) if ref($e) eq 'Hetula::Exception'; #If this is THE 'Hetula::Exception', then handle it here
+  return (status => $e->httpStatus || 500, text => $e->toText) if $e->isa('Hetula::Exception'); #If this is a subclass of 'Hetula::Exception', then handle it here, the status|text can be later overridden
+  return (status => 500, text => toTextUnknown($e));
 }
 
 =head2 toText
@@ -77,15 +102,28 @@ sub toText {
 
   my @sb;
   push(@sb, ref($self).' :> '.$self->error);
-# You can override global exception handling behaviour here.
-# Maybe throw stack traces or somehow automatically identify
-# supplementary exception payloads to show?
-#
-#  while (my ($k, $v) = each(%$self)) {
-#    next if $k eq 'error';
-#    push(@sb, "$k => '$v'");
-#  }
-  return join(', ', @sb);
+
+  # You can override global exception handling behaviour here.
+  # Maybe throw stack traces or somehow automatically identify
+  # supplementary exception payloads to show?
+  if (Hetula::Logger::isMojoDebug() || $l->is_debug()) {
+    #Show any extra fields/keys
+    my @kb = ('Extra exception keys:');
+    while (my ($k, $v) = each(%$self)) {
+      next if ($k eq 'error' || $k eq 'message' || $k eq 'trace');
+      push(@kb, "$k => '$v'");
+    }
+    push(@sb, join(', ', @kb));
+    #Show stack trace
+    if (my $trace = $self->{trace}) {
+      if ($ENV{MOJO_LOG_LEVEL} ne 'trace') {
+        my @rows = split("\n", $trace);
+        $trace = join("\n<br/>    ", $rows[0], $rows[1], $rows[2], $rows[3], $rows[4], $rows[5], $rows[6], $rows[7]); #Why this doesn't work?   $trace =~ /((?:^.+?$){10})/sm;
+      }
+      push(@sb, 'Exception stack trace:', $trace);
+    }
+  }
+  return join("\n<br/>", @sb); #Maybe the separator works for both worlds :D
 }
 
 =head2 toTextUnknown

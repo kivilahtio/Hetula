@@ -11,18 +11,18 @@ prints debug information to STDOUT of a completed Test::Mojo-response, or the gi
 =cut
 
 sub debugResponse {
-  return unless $ENV{MOJO_OPENAPI_DEBUG};
-  my ($r) = @_;
-  if (ref($r) eq 'Test::Mojo') {
-    $r = $r->tx->res;
+  return unless (Hetula::Logger::isMojoDebug());
+  my ($tx) = @_;
+  if (ref($tx) eq 'Test::Mojo') {
+    $tx = $tx->tx;
   }
-  elsif (ref($r) eq 'Mojo::Transaction') {
-    $r = $r->res;
+  elsif (ref($tx) eq 'Mojo::Transaction') {
+    $tx = $tx;
   }
   else {
-    die "debugResponse():> I don't know what \$r '$r' is?";
+    die "debugResponse():> I don't know what \$tx '$tx' is?";
   }
-  print "\n".$r->text."\n\n";
+  print "\n".$tx->req->method." ".$tx->req->url." Status ".$tx->res->code."\n".$tx->res->text."\n\n";
 }
 
 =head testLogs

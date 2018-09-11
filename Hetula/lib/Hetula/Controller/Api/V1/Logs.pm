@@ -31,8 +31,7 @@ sub list {
     return $c->render(status => 200, openapi => $logs);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Log::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 

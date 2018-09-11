@@ -49,4 +49,16 @@ sub flatten {
     return Data::Dumper::Dumper(\@_);
 }
 
+=head2 isMojoDebug
+@static
+
+Checks if some environment variables account to having debug verbosity enabled in general in the whole system.
+
+=cut
+
+sub isMojoDebug {
+  return 1 if ($ENV{MOJO_OPENAPI_DEBUG} || List::Util::first {$ENV{MOJO_LOG_LEVEL} eq $_} ('debug','trace'));
+  return undef;
+}
+
 1;

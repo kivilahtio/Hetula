@@ -29,8 +29,7 @@ sub list {
     return $c->render(status => 200, openapi => $ssns);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Ssn::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -49,10 +48,9 @@ sub post {
     return $c->render(status => 200, openapi => $u);
 
   } catch {
-    return $c->render(status => 409, openapi => $_->{ssn}->swaggerize($c->stash->{'openapi.op_spec'}))
-            if $_->isa('Hetula::Exception::Ssn::AlreadyExists');
-    return $c->render(status => 400, text => $_->toText) if $_->isa('Hetula::Exception::Ssn::Invalid');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    my @render = Hetula::Exception::handleDefaults($_);
+    @render = (status => 409, openapi => $_->{ssn}->swaggerize($c->stash->{'openapi.op_spec'})) if $_->isa('Hetula::Exception::Ssn::AlreadyExists');
+    $c->render(@render);
   };
 }
 
@@ -75,7 +73,7 @@ sub batch {
     return $c->render(status => 200, openapi => $ssnReports);
 
   } catch {
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -92,8 +90,7 @@ sub get {
     return $c->render(status => 200, openapi => $ssn);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Ssn::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -110,8 +107,7 @@ sub delete {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Ssn::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 

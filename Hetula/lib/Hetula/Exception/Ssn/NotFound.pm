@@ -9,4 +9,7 @@ use Exception::Class (
     },
 );
 
+my $httpStatus = '404';
+eval Hetula::Exception::generateNew();
+
 1;

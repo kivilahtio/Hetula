@@ -27,8 +27,9 @@ sub post {
     return $c->render(status => 201, openapi => $perm);
 
   } catch {
-    return $c->render(status => 409, openapi => $_->{permission}) if $_->isa('Hetula::Exception::Permission::Duplicate');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    my @render = Hetula::Exception::handleDefaults($_);
+    @render = (status => $_->httpStatus, openapi => $_->{permission}) if $_->isa('Hetula::Exception::Permission::Duplicate');
+    $c->render(@render);
   };
 }
 
@@ -46,8 +47,7 @@ sub list {
     return $c->render(status => 200, openapi => $perms);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Permission::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -64,8 +64,7 @@ sub get {
     return $c->render(status => 200, openapi => $perm);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Permission::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
@@ -82,8 +81,7 @@ sub delete {
     return $c->render(status => 204, openapi => undef);
 
   } catch {
-    return $c->render(status => 404, text => $_->toText) if $_->isa('Hetula::Exception::Permission::NotFound');
-    return $c->render(status => 500, text => Hetula::Exception::handleDefaults($_));
+    $c->render(Hetula::Exception::handleDefaults($_));
   };
 }
 
