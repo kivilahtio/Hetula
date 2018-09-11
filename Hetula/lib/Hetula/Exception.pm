@@ -101,7 +101,7 @@ sub toText {
   my ($self) = @_;
 
   my @sb;
-  push(@sb, ref($self).' :> '.$self->error);
+  push(@sb, _toTextHeader($self));
 
   # You can override global exception handling behaviour here.
   # Maybe throw stack traces or somehow automatically identify
@@ -124,6 +124,11 @@ sub toText {
     }
   }
   return join("\n<br/>", @sb); #Maybe the separator works for both worlds :D
+}
+
+sub _toTextHeader {
+  my ($self) = @_;
+  return ref($self).' :> '.$self->error;
 }
 
 =head2 toTextUnknown

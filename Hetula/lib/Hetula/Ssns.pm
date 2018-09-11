@@ -106,12 +106,12 @@ sub batchCreateSsns {
       if ($_->isa('Hetula::Exception::Ssn::AlreadyExists')) {
         $batch->[$i]->{ssn} = $_->ssn;
         $batch->[$i]->{status} = 409;
-        $batch->[$i]->{error} = $_->toText;
+        $batch->[$i]->{error} = Hetula::Exception::_toTextHeader($_);
       }
       elsif ($_->isa('Hetula::Exception::Ssn::Invalid')) {
         $batch->[$i]->{ssn} = $_->ssn;
         $batch->[$i]->{status} = 400;
-        $batch->[$i]->{error} = $_->toText;
+        $batch->[$i]->{error} = Hetula::Exception::_toTextHeader($_);
       }
       else {
         $batch->[$i]->{ssn} = {ssn => $newSsn};

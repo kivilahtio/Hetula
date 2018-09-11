@@ -89,7 +89,8 @@ subtest "Api V1 Batch import a big batch of ssns", sub {
   plan tests => 6;
   my ($ssnBatch, $body, $r, @runtime) = @_;
 
-  $ssnBatch = randomSsnBatch(1000);
+  my $batchSize = 750; #Performance requirement dropped from 1000 on 2018-09-11.
+  $ssnBatch = randomSsnBatch($batchSize);
   ok($ssnBatch, 'Given a big batch of ssns');
 
   $runtime[0] = Time::HiRes::time();
@@ -98,8 +99,8 @@ subtest "Api V1 Batch import a big batch of ssns", sub {
   $runtime[1] = Time::HiRes::time();
   t::lib::U::debugResponse($t);
   $body = $t->tx->res->json;
-  is(ref($body), 'ARRAY', 'Then the result is an array');
-  is(scalar(@$body), 1000,   'And the result has 1000 reports');
+  is(ref($body), 'ARRAY',          'Then the result is an array');
+  is(scalar(@$body), $batchSize,   "And the result has '$batchSize' reports");
   $runtime[2] = $runtime[1]-$runtime[0];
   ok($runtime[2] < 30, 'And the runtime was reasonable'); #Adjusted for clover tests
 };
