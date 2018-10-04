@@ -9,7 +9,7 @@ User=hetula
 Environment=HETULA_CONFIGS=/etc/hetula/
 Environment=HETULA_HOME=/opt/Hetula/Hetula/
 
-PIDFile=${HETULA_HOME}/script/hypnotoad.pid
+PIDFile=/var/run/hetula/hypnotoad.pid
 ExecStart=/usr/local/bin/hypnotoad ${HETULA_HOME}/script/hetula
 ExecReload=/usr/local/bin/hypnotoad ${HETULA_HOME}/script/hetula
 KillMode=process

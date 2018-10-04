@@ -15,6 +15,7 @@ sub ACTION_install {
   my $systemdServiceFile = '/etc/systemd/system/hetula.service';
   my $HETULA_HOME = Cwd::getcwd().'/'; #Build.PL is in the root of the program directory, Module::Build normalizes cwd to point to the root of the app.
   my $HETULA_CONFIGS = '/etc/hetula/';
+  my $HETULA_RUNDIR = '/var/run/hetula';
   my $HETULA_USER = 'hetula';
 
 
@@ -68,6 +69,20 @@ sub ACTION_install {
   }
   else {
     $self->log_info( "'$HETULA_CONFIGS/log4perl.conf' exists\n" );
+  }
+
+
+  #####################################
+  ### Give permissions for pid file ###
+  #####################################
+
+  unless (-d $HETULA_RUNDIR) {
+    $self->log_info( "Creating $HETULA_RUNDIR\n" );
+    mkdir $HETULA_RUNDIR;
+    `chown hetula:hetula $HETULA_RUNDIR`;
+  }
+  else {
+    $self->log_info( "'$HETULA_RUNDIR' exists\n" );
   }
 
 
