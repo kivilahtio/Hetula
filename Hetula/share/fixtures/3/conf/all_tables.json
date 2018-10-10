@@ -1,0 +1,49 @@
+{
+   "might_have" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "quantity" : "all",
+         "class" : "User"
+      },
+      {
+         "class" : "Organization",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Ssn"
+      },
+      {
+         "class" : "ApiCredential",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserPermission",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Log",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Permission",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserOrganization",
+         "quantity" : "all"
+      },
+      {
+         "class" : "SsnOrganization",
+         "quantity" : "all"
+      }
+   ],
+   "has_many" : {
+      "fetch" : 0
+   }
+}
