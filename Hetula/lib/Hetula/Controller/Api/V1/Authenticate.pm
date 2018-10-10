@@ -52,7 +52,7 @@ sub under {
     $c->render(Hetula::Exception::handleDefaults($_));
   };
 
-  $c->app->log->debug("Authenticated succesfully. Session '".Hetula::Logger->flatten($c->session)."'. Stash '".Hetula::Logger->flatten($c->stash)."'") if $c->app->log->is_debug;
+  $c->app->log->debug("Authentication='$authStatus'. Session '".Hetula::Logger->flatten($c->session)."'. Stash '".Hetula::Logger->flatten($c->stash)."'") if $c->app->log->is_debug;
   return $authStatus;
 }
 
@@ -129,6 +129,7 @@ sub _passwordAuthentication {
     my $org = _checkOrganization($c, $organizationName);
     _checkPassword($user, $pass);
     _createSession($c, $user, $org);
+    $user->unblockLogin(); #Make sure any previous failures are forgiven, otherwise they accumulate...
   } catch {
     $user->incrementFailedLoginCount;
     Hetula::Exception::rethrowDefaults($_);
