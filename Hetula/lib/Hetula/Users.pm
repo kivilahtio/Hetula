@@ -16,9 +16,12 @@ use Digest::SHA;
 
 use Hetula::Exception::User::NotFound;
 use Hetula::Exception::User::Duplicate;
+use Hetula::Exception::User::NoOrganization;
 use Hetula::Exception::BadParameter;
 use Hetula::Exception::Auth::Password;
 use Hetula::Exception::Auth::PasswordFormat;
+
+my $l = bless({}, 'Hetula::Logger');
 
 =head2 listUsers
 
@@ -100,6 +103,9 @@ sub createUser {
   }
   if ($organizations) {
     $newUser->setOrganizations($organizations);
+  }
+  else {
+    Hetula::Exception::User::NoOrganization->throw(error => "Trying to create a new user '$user->{username}' without an Organization");
   }
 
   return $newUser;

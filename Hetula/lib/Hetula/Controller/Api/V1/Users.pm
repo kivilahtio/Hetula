@@ -37,6 +37,7 @@ sub post {
     if ($user->{permissions}) {
       Hetula::Permissions::hasPermissions($c->session->{userid}, $user->{permissions});
     }
+    $user->{organizations} = [$c->getLoggedInOrganization($c)] unless ($user->{organizations});
     my $u = Hetula::Users::createUser($user)->swaggerize($c->stash->{'openapi.op_spec'});
     return $c->render(status => 201, openapi => $u);
 

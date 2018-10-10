@@ -28,8 +28,6 @@ use Hetula::Exception::Auth::Password;
 
 under route to authenticate all /api/v1 requests
 
-Puts authenticated user to $c->stash()->{loggedinuser}
-
 =cut
 
 sub under {
@@ -54,6 +52,7 @@ sub under {
     $c->render(Hetula::Exception::handleDefaults($_));
   };
 
+  $c->app->log->debug("Authenticated succesfully. Session '".Hetula::Logger->flatten($c->session)."'. Stash '".Hetula::Logger->flatten($c->stash)."'") if $c->app->log->is_debug;
   return $authStatus;
 }
 

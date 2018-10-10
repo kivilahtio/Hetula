@@ -78,6 +78,8 @@ sub startup {
   $r->get('/api/v1/doc')->to('Api::V1::Doc#index');
   $r->get('/api/v1/doc/*path')->to('Api::V1::Doc#swagger_ui');
 
+  createHelpers($self);
+
   ## Log the transaction
   $self->hook(after_dispatch => sub {
     my $c = shift;
@@ -118,6 +120,27 @@ sub startup {
   #When testing, we use a in-memory DB accessible only by the DB connection created by Hetula::Schema::DefaultDB::createDB();
   #We cannot lose this connection or we lose the test DB.
   Hetula::Schema::flushConnections() unless ($mode eq 'testing');
+}
+
+sub createHelpers {
+  my ($self) = @_;
+
+  $self->helper(getLoggedInUser => sub {
+    my ($c) = @_;
+    my $user;
+    try {
+      $user = Hetula::Users::getUser({id => $c->session->{userid}})
+    } catch {
+      Hetula::Exception::User::NotFound->throw(error => 'Couldn\'t get the logged in user? Caught exception: '.$_, httpStatus => 500);
+    };
+    return $user;
+  });
+
+  $self->helper(getLoggedInOrganization => sub {
+    my ($c) = @_;
+    Hetula::Exception::User::NoOrganization->throw(error => "No logged in organization for currently logged in user '".$self->getLoggedInUser()->username."'?") unless ($c->stash->{organization});
+    return $c->stash->{organization};
+  });
 }
 
 =head2 createPermissions

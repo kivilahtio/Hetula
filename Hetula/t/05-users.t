@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
 use FindBin;
-use lib "$FindBin::Bin/../lib";
+use lib "$FindBin::Bin/../lib", "$FindBin::Bin/../";
 
 use Mojo::Base -strict;
 use Hetula::Pragmas;
 
-use Test::Most tests => 10;
+use Test::Most tests => 11;
 use Test::Mojo;
 use Test::MockModule;
 
@@ -164,12 +164,14 @@ subtest "Scenario: Reset and invalidate somebody else's password", sub {
     username => 'innocentius',
     password => 'victim',
     realname => 'Innocentius, Victim of digital battery',
+    organizations => ['Vaara'],
   };
   my $innocentLogin = { username => 'innocentius', password => 'victim', organization => 'Vaara' };
   my $userBad = {
     username => 'bad-baddie',
     password => 'bad-baddie-password',
     realname => 'Infiltrator Iris',
+    organizations => ['Vaara'],
     permissions => [
       #no permissions, this is creepy!
     ],
@@ -429,22 +431,33 @@ subtest "Scenario: Api V1 users - PUT bad organizations and rollback partial cha
 
 
 
+subtest "Create a user without an organization", sub {
+  plan tests => 2;
+
+  ok(1, 'When creating a new User with no Organization');
+  my $user = {
+    username => 'ttttt',
+    password => 'ttttt',
+    realname => 'I have no home',
+  };
+
+  throws_ok(sub { Hetula::Users::createUser($user) }, 'Hetula::Exception::User::NoOrganization', 'Then Hetula::Exception::User::NoOrganization is thrown');
+};
+
+
 subtest "Api V1 CRUD users' organizations", sub {
   plan tests => 21;
-  my ($body, $äijä, $id) = @_;
-  t::lib::Auth::doPasswordLogin($t);
-
-
-  ok(1, 'When POSTing a new User "Pää-Äijä"');
-  $äijä = {
+  my ($body, $id);
+  my $äijä = {
     username => 'pa',
     password => 'äijät',
     realname => 'Pää-Äijä',
-    organizations => [
-      'Vaara',
-    ],
   };
 
+  t::lib::Auth::doPasswordLogin($t);
+
+
+  ok(1, 'When POSTing a new User "Pää-Äijä", without an explicit organization');
   $t->post_ok('/api/v1/users' => {Accept => '*/*'} => json => $äijä)
     ->status_is(201, 'Then a new user is created');
   t::lib::U::debugResponse($t);
@@ -452,7 +465,7 @@ subtest "Api V1 CRUD users' organizations", sub {
   $id = $body->{id};
   ok($body->{organizations}, 'And has organizations-attribute');
   is(scalar(@{$body->{organizations}}), 1, 'And one organization he is part of');
-  is($body->{organizations}->[0], 'Vaara', 'And the name of the organization is Vaara');
+  is($body->{organizations}->[0], Hetula::Config::admin_organization(), 'And the name of the organization is implicitly deducated from the organization of the logged in user');
   ok($id, 'And has an id');
 
 
