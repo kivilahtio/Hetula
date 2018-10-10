@@ -43,9 +43,9 @@ sub testLogs {
     userid         => 1,
     organizationid => 2,
     request        => 3,
-    description    => 4,
-    ip             => 5,
-    updatetime     => 6,
+    ip             => 4,
+    updatetime     => 5,
+    description    => 6,
   );
   testArrayToHash($expectedLogs, $realLogs, \%keyToIndex, 'request');
 }

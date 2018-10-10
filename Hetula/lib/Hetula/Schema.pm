@@ -1,6 +1,6 @@
 package Hetula::Schema; #Database schema version number after the package name
 
-our $VERSION = 2; #Database schema version number, used to track upgrades/downgrades
+our $VERSION = 3; #Database schema version number, used to track upgrades/downgrades
 
 use Hetula::Pragmas;
 

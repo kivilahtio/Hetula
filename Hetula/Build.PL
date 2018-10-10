@@ -145,6 +145,7 @@ $class->new(
   },
   requires => {
     'Carp::Always'                      => '> 0.01',
+    'Data::Printer'                     => '> 0.01',
     'DateTime'                          => '> 0.01',
     'DateTime::Format::ISO8601'         => '> 0.01',
     'DBIx::Class'                       => '> 0.01',

@@ -207,19 +207,19 @@ subtest "Api V1 check logs", sub {
   t::lib::U::debugResponse($t);
   $logs = $t->tx->res->json;
   $expectedLogs = [
-    #   id   userid organizationid     request            description    ip    updatetime
-    [qr/^\d+$/, 1,  $vaara->id,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [qr/^\d+$/, 1,  $vaara->id,   '204 GET /api/v1/auth',    undef, '127.0.0.1', undef],
-    [qr/^\d+$/, 1,  $vaara->id,   '204 DELETE /api/v1/auth', undef, '127.0.0.1', undef],
-    [qr/^\d+$/, '', '',           '404 GET /api/v1/auth',    undef, '127.0.0.1', undef],
-    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [qr/^\d+$/, 1,  '',           '403 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   undef, '127.0.0.1', undef],
-    [qr/^\d+$/, '', '',           '404 POST /api/v1/auth', qr/^Hetula::Exception::User::NotFound/, '127.0.0.1', undef],
-    [qr/^\d+$/, 1,  '',           '404 POST /api/v1/auth', qr/^Hetula::Exception::Organization::NotFound/, '127.0.0.1', undef],
+    #   id   userid organizationid     request               ip        updatetime  description
+    [qr/^\d+$/, 1,  $vaara->id,   '201 POST /api/v1/auth',   '127.0.0.1', undef, 'Session created'],
+    [qr/^\d+$/, 1,  $vaara->id,   '204 GET /api/v1/auth',    '127.0.0.1', undef, 'null'],
+    [qr/^\d+$/, 1,  $vaara->id,   '204 DELETE /api/v1/auth', '127.0.0.1', undef, 'null'],
+    [qr/^\d+$/, '', '',           '404 GET /api/v1/auth',    '127.0.0.1', undef, 'Hetula::Exception::Auth::Authentication :> Session not found'],
+    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   '127.0.0.1', undef, 'Hetula::Exception::Auth::Password :> Wrong password'],
+    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   '127.0.0.1', undef, 'Hetula::Exception::Auth::Password :> Wrong password'],
+    [qr/^\d+$/, 1,  '',           '403 POST /api/v1/auth',   '127.0.0.1', undef, 'Hetula::Exception::Auth::AccountBlocked :> Account has been frozen due to too many failed login attemps'],
+    [qr/^\d+$/, 1,  $vaara->id,   '401 POST /api/v1/auth',   '127.0.0.1', undef, 'Hetula::Exception::Auth::Password :> Wrong password'],
+    [qr/^\d+$/, '', '',           '404 POST /api/v1/auth',   '127.0.0.1', undef, qr/\QNo user found with params "{username => 'naku-admin'}"\E/],
+    [qr/^\d+$/, 1,  '',           '404 POST /api/v1/auth',   '127.0.0.1', undef, 'Hetula::Exception::Organization::NotFound :> No organization found with params "[{name => \'Magic mushroom land\'}]"'],
     [],[],[],[],[],
-    [qr/^\d+$/, 1,  $lumme->id,   '201 POST /api/v1/auth',   undef, '127.0.0.1', undef],
+    [qr/^\d+$/, 1,  $lumme->id,   '201 POST /api/v1/auth',   '127.0.0.1', undef, 'Session created'],
   ];
   t::lib::U::testLogs($expectedLogs, $logs);
 
@@ -232,9 +232,9 @@ subtest "Api V1 check logs", sub {
   t::lib::U::debugResponse($t);
   $logs = $t->tx->res->json;
   $expectedLogs = [
-    #   id   userid organizationid      request                     description    ip    updatetime
-    [qr/^\d+$/, 1, $lumme->id,   '201 POST /api/v1/auth',              undef, '127.0.0.1', undef],
-    [qr/^\d+$/, 1, $lumme->id,   qr!^\Q200 GET /api/v1/logs?until=\E!, undef, '127.0.0.1', undef],
+    #   id   userid organizationid      request                        ip       updatetime  description
+    [qr/^\d+$/, 1, $lumme->id,   '201 POST /api/v1/auth',              '127.0.0.1', undef, 'Session created'],
+    [qr/^\d+$/, 1, $lumme->id,   qr!^\Q200 GET /api/v1/logs?until=\E!, '127.0.0.1', undef, undef],
   ];
   t::lib::U::testLogs($expectedLogs, $logs);
 

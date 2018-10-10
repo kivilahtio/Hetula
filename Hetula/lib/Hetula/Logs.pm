@@ -74,7 +74,7 @@ sub createLog {
   my $l = Hetula::Schema::schema()->resultset('Log')->create({
     userid         => $c->session->{userid} || ($c->stash->{logginginuser} ? $c->stash->{logginginuser}->id : undef),
     request        => $c->stash->{status}.' '.$c->req->method.' '.$c->req->url,
-    description    => substr($c->res->text, 0, 50) || '',
+    description    => $c->res->text || '',
     ip             => $c->tx->original_remote_address,
     organizationid => $c->session->{organizationid} || ($c->stash->{organization} ? $c->stash->{organization}->id : undef),
   });

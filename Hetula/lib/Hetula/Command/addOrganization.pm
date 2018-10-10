@@ -5,6 +5,8 @@ use Mojo::Util 'getopt';
 
 use Hetula::Pragmas;
 
+use Storable qw(dclone);
+
 use Hetula::Organizations;
 use Hetula::Users;
 
@@ -52,6 +54,8 @@ sub run {
     password => $password,
     organizations => [$organization],
     permissions => [
+      'auth-get',
+      'logs-get',
       'users-get',
       'users-post',
       'users-id-get',
@@ -59,11 +63,13 @@ sub run {
       'users-id-put',
       'ssns-post',
       'ssns-batch-post',
+      'ssns-id-get',
+      'ping-get',
     ],
   };
 
   try {
-    Hetula::Users::createUser($user);
+    Hetula::Users::createUser(dclone($user));
     print("New user '$username' succesfully added\n");
   } catch {
     if (blessed($_) && $_->isa('Hetula::Exception::User::Duplicate')) {

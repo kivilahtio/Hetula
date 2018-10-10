@@ -166,7 +166,6 @@ sub revokeAllPermissions {
 
 sub setPermissions {
   my ($self, $permissions) = @_;
-
   if (blessed($permissions->[0]) && $permissions->[0]->isa('Hetula::Schema::Result::Permission')) {
     #Looks like we got Permissions-objects instead, good!
     $self->set_permissions($permissions);
