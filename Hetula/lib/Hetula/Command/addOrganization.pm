@@ -61,6 +61,8 @@ sub run {
       'users-id-get',
       'users-id-delete',
       'users-id-put',
+      'users-id-password-delete',
+      'users-id-password-put',
       'ssns-post',
       'ssns-batch-post',
       'ssns-id-get',
